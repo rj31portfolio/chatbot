@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>@yield('title','Dashboard') · {{ $brand }}</title>@vite(['resources/css/app.css','resources/js/app.js'])<style>:root{--accent:{{ $primaryColor }}}</style></head>
+<body x-data="{nav:false}" class="app-body">
+@php($currentBusiness=request()->attributes->get('business'))
+@php($isAdmin=request()->is('admin*'))
+@php($membership=request()->attributes->get('membership'))
+@php($permissions=json_decode($membership?->permissions??'[]',true)?:[])
+<div x-show="nav" x-cloak class="nav-backdrop" @click="nav=false"></div>
+<aside class="sidebar" :class="{'mobile-open':nav}">
+    <a class="brand" href="{{ $isAdmin?'/admin':'/dashboard' }}"><span class="brand-mark"><x-icon name="spark"/></span><span>{{ $brand }}<small>YOUR AI. YOUR GROWTH.</small></span></a>
+    @if($currentBusiness)<form action="/business/switch" method="post" class="business-switch">@csrf<span class="business-avatar">{{ mb_substr($currentBusiness->name,0,1) }}</span><div><select name="business_id" aria-label="Switch business" onchange="this.form.submit()">@foreach($availableBusinesses as $b)<option value="{{ $b->id }}" @selected($b->id===$currentBusiness->id)>{{ $b->name }}</option>@endforeach</select><small>Business workspace</small></div></form>@endif
+    <nav class="nav-list">
+    @if($isAdmin)
+        <span class="nav-label">PLATFORM</span>
+        @foreach([['/admin','Overview','grid'],['/admin/users','Users','users'],['/admin/plans','Plans & limits','card'],['/admin/subscriptions','Subscriptions','card'],['/admin/settings','Platform settings','settings']] as [$href,$label,$icon])<a href="{{ $href }}" @class(['nav-item','active'=>request()->getPathInfo()===$href])><x-icon :name="$icon"/>{{ $label }}</a>@endforeach
+    @else
+        @php($groups=['WORKSPACE'=>[['/dashboard','Overview','grid','reports'],['/conversations','Conversations','chat','conversations'],['/leads','Lead CRM','users','leads'],['/appointments','Appointments','calendar','leads'],['/analytics','Analytics','chart','reports']],'YOUR AI AGENT'=>[['/training','AI training','spark','knowledge'],['/manage/knowledge','Knowledge base','book','knowledge'],['/manage/website','Website learning','globe','knowledge'],['/manage/services','Services','box','knowledge'],['/manage/products','Products','box','knowledge'],['/manage/faqs','FAQs','chat','knowledge'],['/manage/policies','Policies','book','knowledge'],['/chatbot','AI behavior','settings','chatbot'],['/tester','Test your AI','chat','chatbot'],['/widget','Widget design','grid','chatbot'],['/installation','Installation','code','chatbot']],'MANAGE'=>[['/team','Team','users','team'],['/manage/integrations','Integrations','link','settings'],['/manage/automations','Automations','spark','settings'],['/subscription','Subscription','card','settings'],['/settings','Business settings','settings','settings']]])
+        @foreach($groups as $group=>$links)<span class="nav-label">{{ $group }}</span>@foreach($links as [$href,$label,$icon,$perm])@if(!$membership||$membership->role==='owner'||in_array($perm,$permissions,true))<a href="{{ $href }}" @class(['nav-item','active'=>request()->getPathInfo()===$href])><x-icon :name="$icon"/>{{ $label }}</a>@endif @endforeach @endforeach
+        @if(auth()->user()->is_super_admin)<a href="/admin" class="nav-item"><x-icon name="settings"/>Platform admin</a>@endif
+    @endif
+    </nav>
+    <div class="sidebar-bottom"><span class="avatar">{{ mb_substr(auth()->user()->name,0,1) }}</span><div><strong>{{ auth()->user()->name }}</strong><small>{{ $isAdmin?'Super admin':($membership?->role??'Account owner') }}</small></div><form action="/logout" method="post">@csrf<button class="icon-button" aria-label="Sign out"><x-icon name="logout"/></button></form></div>
+</aside>
+<div class="main-shell"><header class="topbar"><div class="topbar-left"><button class="icon-button mobile-menu" @click="nav=!nav" aria-label="Open navigation"><x-icon name="menu"/></button><span class="breadcrumb">{{ $isAdmin?'Platform':'Workspace' }} <span>/</span> <strong>@yield('title','Overview')</strong></span></div><div class="topbar-right"><a class="help-link" href="/installation">Installation guide <x-icon name="arrow"/></a><span class="avatar small">{{ mb_substr(auth()->user()->name,0,1) }}</span></div></header>
+<main class="main-content">@if(session('status'))<div class="alert success" role="status"><x-icon name="check"/>{{ session('status') }}</div>@endif @if($errors->any())<div class="alert error" role="alert">{{ $errors->first() }}</div>@endif @yield('content')</main>
+<footer class="app-footer"><span>© {{ date('Y') }} {{ $brand }}</span><div><span class="status-dot"></span> Your business, always connected</div><a href="/privacy">Privacy & data</a></footer></div>@stack('scripts')</body></html>
