@@ -1,6 +1,5 @@
 <?php
+
 namespace App\Models;
 
-class ChatWidgetDomain extends TenantModel
-{
-}
+class ChatWidgetDomain extends TenantModel {}

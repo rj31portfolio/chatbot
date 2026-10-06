@@ -1,6 +1,5 @@
 <?php
+
 namespace App\Models;
 
-class AiUsageLog extends TenantModel
-{
-}
+class AiUsageLog extends TenantModel {}

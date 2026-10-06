@@ -14,9 +14,10 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    protected $attributes = ['status'=>'active','is_super_admin'=>false];
+    protected $attributes = ['status' => 'active', 'is_super_admin' => false];
+
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, \Laravel\Sanctum\HasApiTokens;
 
     /**
      * Get the attributes that should be cast.

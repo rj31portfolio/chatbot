@@ -2,6 +2,15 @@
 
 namespace App\Providers;
 
+use App\AI\AIProviderInterface;
+use App\AI\AIProviderManager;
+use App\Billing\PaymentGatewayInterface;
+use App\Billing\RazorpayGateway;
+use App\Models\PlatformSetting;
+use App\Support\TenantContext;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,9 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(\App\Support\TenantContext::class);
-        $this->app->bind(\App\AI\AIProviderInterface::class,\App\AI\AIProviderManager::class);
-        $this->app->bind(\App\Billing\PaymentGatewayInterface::class,\App\Billing\RazorpayGateway::class);
+        $this->app->scoped(TenantContext::class);
+        $this->app->bind(AIProviderInterface::class, AIProviderManager::class);
+        $this->app->bind(PaymentGatewayInterface::class, RazorpayGateway::class);
     }
 
     /**
@@ -21,21 +30,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\RateLimiter::for('auth',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($r->ip().'|'.strtolower($r->input('email',''))));
-        \Illuminate\Support\Facades\RateLimiter::for('widget',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(90)->by($r->ip().'|'.$r->header('X-Widget-Id')));
-        \Illuminate\Support\Facades\RateLimiter::for('widget-session',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($r->ip()));
-        \Illuminate\Support\Facades\RateLimiter::for('widget-message',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($r->ip().'|'.$r->input('session_id')));
-        \Illuminate\Support\Facades\View::composer(['layouts.app','auth.form','landing','legal','demo'],function($view){
-            $platform=\App\Models\PlatformSetting::pluck('value','key');
-            $view->with('brand',$platform['brand']['value']??config('saas.brand'));
-            $view->with('logoUrl',$platform['logo_url']['value']??null);
-            $view->with('faviconUrl',$platform['favicon_url']['value']??null);
-            $view->with('secondaryColor',$platform['secondary_color']['value']??config('saas.secondary_color'));
-            $view->with('companyName',$platform['company_name']['value']??config('saas.brand'));
-            $view->with('companyUrl',$platform['website_url']['value']??null);
-            $view->with('supportEmail',$platform['support_email']['value']??null);
-            $view->with('primaryColor',$platform['primary_color']['value']??config('saas.primary_color'));
-            if(auth()->check()) $view->with('availableBusinesses',auth()->user()->businesses()->get());
+        \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(\App\Models\PersonalAccessToken::class);
+        RateLimiter::for('auth', fn ($r) => Limit::perMinute(5)->by($r->ip().'|'.strtolower($r->input('email', ''))));
+        RateLimiter::for('widget', fn ($r) => Limit::perMinute(90)->by($r->ip().'|'.$r->header('X-Widget-Id')));
+        RateLimiter::for('widget-session', fn ($r) => Limit::perMinute(5)->by($r->ip()));
+        RateLimiter::for('widget-message', fn ($r) => Limit::perMinute(15)->by($r->ip().'|'.$r->input('session_id')));
+        View::composer(['layouts.app', 'auth.form', 'landing', 'legal', 'demo'], function ($view) {
+            $platform = PlatformSetting::pluck('value', 'key');
+            $view->with('brand', $platform['brand']['value'] ?? config('saas.brand'));
+            $view->with('logoUrl', $platform['logo_url']['value'] ?? null);
+            $view->with('faviconUrl', $platform['favicon_url']['value'] ?? null);
+            $view->with('secondaryColor', $platform['secondary_color']['value'] ?? config('saas.secondary_color'));
+            $view->with('companyName', $platform['company_name']['value'] ?? config('saas.brand'));
+            $view->with('companyUrl', $platform['website_url']['value'] ?? null);
+            $view->with('supportEmail', $platform['support_email']['value'] ?? null);
+            $view->with('primaryColor', $platform['primary_color']['value'] ?? config('saas.primary_color'));
+            if (auth()->check()) {
+                $view->with('availableBusinesses', auth()->user()->businesses()->get());
+            }
         });
     }
 }

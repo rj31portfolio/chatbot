@@ -1,6 +1,5 @@
 <?php
+
 namespace App\Models;
 
-class WebsitePage extends TenantModel
-{
-}
+class WebsitePage extends TenantModel {}

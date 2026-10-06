@@ -1,6 +1,5 @@
 <?php
+
 namespace App\Models;
 
-class LeadActivity extends TenantModel
-{
-}
+class LeadActivity extends TenantModel {}

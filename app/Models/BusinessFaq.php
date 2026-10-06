@@ -1,6 +1,5 @@
 <?php
+
 namespace App\Models;
 
-class BusinessFaq extends TenantModel
-{
-}
+class BusinessFaq extends TenantModel {}
