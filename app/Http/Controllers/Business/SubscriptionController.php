@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Business;
 
 use App\Billing\PaymentGatewayInterface;
 use App\Http\Controllers\Controller;
+use App\Models\Coupon;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -26,22 +27,26 @@ class SubscriptionController extends Controller
     public function order(Request $r)
     {
         ResourceRegistry::authorize($r, 'settings');
-        $r->validate(['plan_id' => 'required|integer', 'interval' => 'required|in:monthly,yearly','coupon'=>'nullable|string|max:40']);
+        $r->validate(['plan_id' => 'required|integer', 'interval' => 'required|in:monthly,yearly', 'coupon' => 'nullable|string|max:40']);
         $plan = SubscriptionPlan::whereKey($r->input('plan_id'))->where('active', true)->firstOrFail();
         $amount = $r->input('interval') === 'yearly' ? $plan->yearly_price : $plan->monthly_price;
         if ($amount <= 0) {
             throw ValidationException::withMessages(['plan' => 'Choose a paid plan to use online checkout.']);
         }
-        $order=DB::transaction(function() use($r,$plan,$amount) {
-            $coupon=null; $minor=(int)round($amount*100);
-            if($r->filled('coupon')) {
-                $coupon=\App\Models\Coupon::where('code',strtoupper($r->input('coupon')))->lockForUpdate()->first();
-                if(!$coupon||$coupon->expires_at?->isPast()||$coupon->redemptions>=$coupon->max_redemptions) throw ValidationException::withMessages(['coupon'=>'This coupon is invalid, expired, or fully used.']);
-                $minor=(int)round($minor*(100-$coupon->percent)/100);
+        $order = DB::transaction(function () use ($r, $plan, $amount) {
+            $coupon = null;
+            $minor = (int) round($amount * 100);
+            if ($r->filled('coupon')) {
+                $coupon = Coupon::where('code', strtoupper($r->input('coupon')))->lockForUpdate()->first();
+                if (! $coupon || $coupon->expires_at?->isPast() || $coupon->redemptions >= $coupon->max_redemptions) {
+                    throw ValidationException::withMessages(['coupon' => 'This coupon is invalid, expired, or fully used.']);
+                }
+                $minor = (int) round($minor * (100 - $coupon->percent) / 100);
                 $coupon->increment('redemptions');
             }
-            $order=app(PaymentGatewayInterface::class)->createOrder($minor,$plan->currency,'upgrade_'.Str::random(16));
-            Payment::create(['gateway'=>'razorpay','reference'=>$order['id'],'amount'=>$minor/100,'currency'=>$plan->currency,'status'=>'pending','metadata'=>['plan_id'=>$plan->id,'interval'=>$r->input('interval'),'coupon_id'=>$coupon?->id,'coupon_code'=>$coupon?->code]]);
+            $order = app(PaymentGatewayInterface::class)->createOrder($minor, $plan->currency, 'upgrade_'.Str::random(16));
+            Payment::create(['gateway' => 'razorpay', 'reference' => $order['id'], 'amount' => $minor / 100, 'currency' => $plan->currency, 'status' => 'pending', 'metadata' => ['plan_id' => $plan->id, 'interval' => $r->input('interval'), 'coupon_id' => $coupon?->id, 'coupon_code' => $coupon?->code]]);
+
             return $order;
         });
 
@@ -73,6 +78,6 @@ class SubscriptionController extends Controller
         $s = Subscription::firstOrFail();
         $s->update(['status' => 'cancelled']);
 
-        return back()->with('status','Subscription cancelled. Widget access is paused.');
+        return back()->with('status', 'Subscription cancelled. Widget access is paused.');
     }
 }

@@ -17,7 +17,7 @@ class User extends Authenticatable
     protected $attributes = ['status' => 'active', 'is_super_admin' => false];
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, \Laravel\Sanctum\HasApiTokens;
+    use HasFactory, \Laravel\Sanctum\HasApiTokens, Notifiable;
 
     /**
      * Get the attributes that should be cast.

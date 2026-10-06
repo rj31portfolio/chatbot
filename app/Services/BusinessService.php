@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class BusinessService
 {
@@ -19,16 +20,21 @@ class BusinessService
     {
         return DB::transaction(function () use ($owner, $data) {
             User::whereKey($owner->id)->lockForUpdate()->firstOrFail();
-            $owned=Business::where('owner_id',$owner->id)->get();
-            $businessLimit=1;
-            foreach($owned as $existing) {
-                $allowed=app(TenantContext::class)->run($existing,function() {
-                    try { return (int)(app(UsageService::class)->subscription()->plan->limits['businesses']??1); }
-                    catch(\Illuminate\Validation\ValidationException) { return 1; }
+            $owned = Business::where('owner_id', $owner->id)->get();
+            $businessLimit = 1;
+            foreach ($owned as $existing) {
+                $allowed = app(TenantContext::class)->run($existing, function () {
+                    try {
+                        return (int) (app(UsageService::class)->subscription()->plan->limits['businesses'] ?? 1);
+                    } catch (ValidationException) {
+                        return 1;
+                    }
                 });
-                $businessLimit=max($businessLimit,$allowed);
+                $businessLimit = max($businessLimit, $allowed);
             }
-            if($owned->count()>=$businessLimit) throw \Illuminate\Validation\ValidationException::withMessages(['business'=>'Your business limit has been reached. Upgrade an existing business to a plan that supports additional businesses.']);
+            if ($owned->count() >= $businessLimit) {
+                throw ValidationException::withMessages(['business' => 'Your business limit has been reached. Upgrade an existing business to a plan that supports additional businesses.']);
+            }
             $business = new Business($data);
             $business->owner_id = $owner->id;
             $business->slug = Str::slug($data['name']).'-'.Str::lower(Str::random(8));

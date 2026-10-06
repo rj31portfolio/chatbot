@@ -32,10 +32,12 @@ class SummarizeConversation implements ShouldQueue
                 return;
             }
             $summary = app(AIService::class)->summarizeConversation($s);
-            $metadata=$s->metadata??[];
-            $metadata['classification']=app(AIService::class)->classifyConversation($s);
-            if($s->status==='abandoned'&&$s->lead_id) $metadata['follow_up']=app(AIService::class)->generateFollowUp($s);
-            $s->update(['conversation_summary' => $summary,'metadata'=>$metadata]);
+            $metadata = $s->metadata ?? [];
+            $metadata['classification'] = app(AIService::class)->classifyConversation($s);
+            if ($s->status === 'abandoned' && $s->lead_id) {
+                $metadata['follow_up'] = app(AIService::class)->generateFollowUp($s);
+            }
+            $s->update(['conversation_summary' => $summary, 'metadata' => $metadata]);
             $s->lead?->update(['summary' => $summary]);
             app(EventService::class)->emit('conversation.completed', $s->lead, ['session_id' => $s->public_id, 'summary' => $summary]);
         });

@@ -41,17 +41,17 @@ class KnowledgeService
         $q = KnowledgeChunk::query()->whereHas('document', fn ($q) => $q->where('status', 'ready'));
         $candidates = collect();
         if (DB::getDriverName() === 'mysql') {
-            $candidates=(clone $q)->whereFullText('content',implode(' ',$words))->limit(200)->get();
+            $candidates = (clone $q)->whereFullText('content', implode(' ', $words))->limit(200)->get();
         }
         // Full-text indexes exclude stop words, short terms, and uncommitted
         // rows. Keyword search keeps freshly imported knowledge searchable.
-        if($candidates->isEmpty()) {
+        if ($candidates->isEmpty()) {
             $q->where(function ($q) use ($words) {
                 foreach ($words as $w) {
                     $q->orWhere('content', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $w).'%');
                 }
             });
-            $candidates=$q->limit(200)->get();
+            $candidates = $q->limit(200)->get();
         }
 
         return $candidates->map(function ($chunk) use ($words) {

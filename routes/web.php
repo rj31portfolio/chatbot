@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Business\AgencyController;
+use App\Http\Controllers\Business\ApiKeyController;
+use App\Http\Controllers\Business\BrandingController;
 use App\Http\Controllers\Business\BusinessController;
 use App\Http\Controllers\Business\ChatbotController;
 use App\Http\Controllers\Business\CrmController;
@@ -34,12 +38,12 @@ Route::middleware(['auth', 'active-account'])->group(function () {
     Route::post('/business', [BusinessController::class, 'store']);
     Route::post('/business/switch', [BusinessController::class, 'switch']);
     Route::middleware('tenant')->group(function () {
-        Route::get('/agency',[\App\Http\Controllers\Business\AgencyController::class,'index']);
-        Route::get('/branding',[\App\Http\Controllers\Business\BrandingController::class,'index']);
-        Route::put('/branding',[\App\Http\Controllers\Business\BrandingController::class,'save']);
-        Route::get('/api-keys',[\App\Http\Controllers\Business\ApiKeyController::class,'index']);
-        Route::post('/api-keys',[\App\Http\Controllers\Business\ApiKeyController::class,'store']);
-        Route::delete('/api-keys/{id}',[\App\Http\Controllers\Business\ApiKeyController::class,'destroy']);
+        Route::get('/agency', [AgencyController::class, 'index']);
+        Route::get('/branding', [BrandingController::class, 'index']);
+        Route::put('/branding', [BrandingController::class, 'save']);
+        Route::get('/api-keys', [ApiKeyController::class, 'index']);
+        Route::post('/api-keys', [ApiKeyController::class, 'store']);
+        Route::delete('/api-keys/{id}', [ApiKeyController::class, 'destroy']);
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'read']);
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -83,10 +87,10 @@ Route::middleware(['auth', 'active-account'])->group(function () {
         Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel']);
     });
     Route::prefix('admin')->middleware('superadmin')->group(function () {
-        Route::get('/coupons',[\App\Http\Controllers\Admin\CouponController::class,'index']);
-        Route::post('/coupons',[\App\Http\Controllers\Admin\CouponController::class,'save']);
-        Route::put('/coupons/{id}',[\App\Http\Controllers\Admin\CouponController::class,'save']);
-        Route::delete('/coupons/{id}',[\App\Http\Controllers\Admin\CouponController::class,'delete']);
+        Route::get('/coupons', [CouponController::class, 'index']);
+        Route::post('/coupons', [CouponController::class, 'save']);
+        Route::put('/coupons/{id}', [CouponController::class, 'save']);
+        Route::delete('/coupons/{id}', [CouponController::class, 'delete']);
         Route::get('/revenue', [RevenueController::class, 'index']);
         Route::get('/', [AdminController::class, 'index']);
         Route::get('/plans', [AdminController::class, 'plans']);
@@ -95,9 +99,9 @@ Route::middleware(['auth', 'active-account'])->group(function () {
         Route::put('/businesses/{id}/status', [AdminController::class, 'businessStatus']);
         Route::get('/users', [AdminController::class, 'users']);
         Route::put('/users/{id}', [AdminController::class, 'userStatus']);
-        Route::get('/settings',[AdminController::class, 'settings']);
-        Route::put('/settings',[AdminController::class, 'saveSettings']);
-        Route::get('/subscriptions',[AdminController::class, 'subscriptions']);
-        Route::put('/subscriptions/{id}',[AdminController::class, 'updateSubscription']);
+        Route::get('/settings', [AdminController::class, 'settings']);
+        Route::put('/settings', [AdminController::class, 'saveSettings']);
+        Route::get('/subscriptions', [AdminController::class, 'subscriptions']);
+        Route::put('/subscriptions/{id}', [AdminController::class, 'updateSubscription']);
     });
 });

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ActiveAccount;
+use App\Http\Middleware\ApiTenant;
 use App\Http\Middleware\BusinessPermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SuperAdmin;
@@ -23,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['api-tenant'=>\App\Http\Middleware\ApiTenant::class,'active-account' => ActiveAccount::class, 'tenant' => TenantMiddleware::class, 'permission' => BusinessPermission::class, 'superadmin' => SuperAdmin::class, 'widget' => WidgetAuthentication::class]);
+        $middleware->alias(['api-tenant' => ApiTenant::class, 'active-account' => ActiveAccount::class, 'tenant' => TenantMiddleware::class, 'permission' => BusinessPermission::class, 'superadmin' => SuperAdmin::class, 'widget' => WidgetAuthentication::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

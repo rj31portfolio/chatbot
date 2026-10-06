@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\AiSetting;
+use App\Models\BusinessSetting;
 use App\Models\ChatSession;
 use App\Models\ChatWidget;
+use App\Models\PlatformSetting;
 use App\Models\Visitor;
 use App\Models\VisitorEvent;
 use App\Support\TenantContext;
@@ -17,12 +19,16 @@ class WidgetService
     {
         $b = app(TenantContext::class)->business();
         $s = AiSetting::firstOrFail();
-        $platform=\App\Models\PlatformSetting::pluck('value','key');
-        $brand=$platform['brand']['value']??config('saas.brand');
-        $whiteLabel=app(UsageService::class)->subscription()->plan->limits['white_label']??0;
-        if($whiteLabel) $brand=\App\Models\BusinessSetting::where('key','branding')->first()?->value['brand']??$brand;
-        $settings=$widget->settings??[];
-        if(!$whiteLabel) $settings['show_branding']=true;
+        $platform = PlatformSetting::pluck('value', 'key');
+        $brand = $platform['brand']['value'] ?? config('saas.brand');
+        $whiteLabel = app(UsageService::class)->subscription()->plan->limits['white_label'] ?? 0;
+        if ($whiteLabel) {
+            $brand = BusinessSetting::where('key', 'branding')->first()?->value['brand'] ?? $brand;
+        }
+        $settings = $widget->settings ?? [];
+        if (! $whiteLabel) {
+            $settings['show_branding'] = true;
+        }
 
         return ['widget_id' => $widget->public_id, 'title' => $widget->title, 'color' => $widget->color, 'welcome_message' => $widget->welcome_message, 'position' => $widget->position, 'brand' => $brand, 'fields' => $s->lead_fields, 'capture' => $s->features['capture'] ?? false, 'appointments' => $s->features['appointments'] ?? false, 'phone' => $b->phone, 'email' => $b->email, 'whatsapp' => $b->whatsapp, 'settings' => array_intersect_key($settings, array_flip(['placeholder', 'radius', 'bottom', 'size', 'auto_open_seconds', 'show_branding', 'show_phone', 'show_email', 'show_whatsapp', 'tracking']))];
     }

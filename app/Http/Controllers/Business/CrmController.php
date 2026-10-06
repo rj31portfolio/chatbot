@@ -14,6 +14,7 @@ use App\Services\AnalyticsService;
 use App\Services\EventService;
 use App\Support\ResourceRegistry;
 use App\Support\TenantContext;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class CrmController extends Controller
@@ -131,12 +132,13 @@ class CrmController extends Controller
 
     public function export(Request $r, string $type)
     {
-        if($r->query('format')==='pdf') {
-            ResourceRegistry::authorize($r,$type==='leads'?'leads':($type==='conversations'?'conversations':'reports'));
-            abort_unless(in_array($type,['leads','conversations','analytics'],true),404);
-            $columns=$type==='leads'?['name','email','phone','requirement','score','status']:($type==='conversations'?['public_id','status','conversation_summary']:['date','chats','leads']);
-            $rows=$type==='leads'?$this->query($r)->limit(500)->get():($type==='conversations'?ChatSession::latest()->limit(500)->get():collect(app(AnalyticsService::class)->daily()));
-            return \Barryvdh\DomPDF\Facade\Pdf::loadView('business.export-pdf',compact('type','columns','rows'))->setOptions(['isRemoteEnabled'=>false,'isPhpEnabled'=>false])->setPaper('a4','landscape')->download($type.'-'.now()->format('Y-m-d').'.pdf');
+        if ($r->query('format') === 'pdf') {
+            ResourceRegistry::authorize($r, $type === 'leads' ? 'leads' : ($type === 'conversations' ? 'conversations' : 'reports'));
+            abort_unless(in_array($type, ['leads', 'conversations', 'analytics'], true), 404);
+            $columns = $type === 'leads' ? ['name', 'email', 'phone', 'requirement', 'score', 'status'] : ($type === 'conversations' ? ['public_id', 'status', 'conversation_summary'] : ['date', 'chats', 'leads']);
+            $rows = $type === 'leads' ? $this->query($r)->limit(500)->get() : ($type === 'conversations' ? ChatSession::latest()->limit(500)->get() : collect(app(AnalyticsService::class)->daily()));
+
+            return Pdf::loadView('business.export-pdf', compact('type', 'columns', 'rows'))->setOptions(['isRemoteEnabled' => false, 'isPhpEnabled' => false])->setPaper('a4', 'landscape')->download($type.'-'.now()->format('Y-m-d').'.pdf');
         }
         ResourceRegistry::authorize($r, $type === 'leads' ? 'leads' : ($type === 'conversations' ? 'conversations' : 'reports'));
         abort_unless(in_array($type, ['leads', 'conversations', 'analytics'], true), 404);
@@ -150,8 +152,8 @@ class CrmController extends Controller
                 $cells = [];
                 foreach ($columns as $col) {
                     $v = (string) (is_array($row) ? ($row[$col] ?? '') : ($row->$col ?? ''));
-                    $cells[] = preg_match('/^[=+\-@\t\r]/',$v) ? "'".$v : $v;
-                }fputcsv($f,$cells,',','"','');
+                    $cells[] = preg_match('/^[=+\-@\t\r]/', $v) ? "'".$v : $v;
+                }fputcsv($f, $cells, ',', '"', '');
             } fclose($f);
         }, $type.'-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }

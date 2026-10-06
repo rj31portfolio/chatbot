@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\DeliverWebhook;
 use App\Jobs\SummarizeConversation;
 use App\Models\AiSetting;
 use App\Models\AnalyticsDaily;
@@ -7,6 +8,7 @@ use App\Models\Business;
 use App\Models\ChatSession;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Models\WebhookLog;
 use App\Services\AnalyticsService;
 use App\Support\TenantContext;
 use Illuminate\Foundation\Inspiring;
@@ -40,7 +42,7 @@ Artisan::command('app:maintenance', function () {
     Business::each(function ($business) {
         app(TenantContext::class)->run($business, function () {
             $settings = AiSetting::first();
-            \App\Models\WebhookLog::where('status','pending')->where('attempts','<',5)->where('created_at','<',now()->subMinute())->each(fn($log)=>\App\Jobs\DeliverWebhook::dispatch($business->id,$log->id));
+            WebhookLog::where('status', 'pending')->where('attempts', '<', 5)->where('created_at', '<', now()->subMinute())->each(fn ($log) => DeliverWebhook::dispatch($business->id, $log->id));
             if (! $settings) {
                 return;
             }

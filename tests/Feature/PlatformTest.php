@@ -106,7 +106,7 @@ class PlatformTest extends TestCase
             $this->get($path)->assertOk();
         }
         $this->asOwner();
-        foreach (['/dashboard', '/training', '/manage/knowledge', '/manage/website', '/manage/services', '/manage/products', '/manage/faqs', '/manage/policies', '/manage/integrations', '/manage/automations', '/chatbot', '/widget', '/installation', '/tester', '/leads', '/conversations', '/appointments', '/analytics', '/team', '/subscription', '/settings', '/business/create'] as $path) {
+        foreach (['/dashboard', '/training', '/manage/knowledge', '/manage/website', '/manage/services', '/manage/products', '/manage/faqs', '/manage/policies', '/manage/integrations', '/manage/automations', '/chatbot', '/widget', '/installation', '/tester', '/leads', '/conversations', '/appointments', '/analytics', '/team', '/subscription', '/settings', '/business/create', '/api-keys', '/agency', '/branding', '/notifications'] as $path) {
             $this->get($path)->assertOk();
         }
     }
@@ -121,7 +121,7 @@ class PlatformTest extends TestCase
 
     public function test_business_creation_connects_subscription_settings_and_widget(): void
     {
-        $this->tenant(fn()=>Subscription::firstOrFail()->update(['subscription_plan_id'=>SubscriptionPlan::where('name','Professional')->firstOrFail()->id]));
+        $this->tenant(fn () => Subscription::firstOrFail()->update(['subscription_plan_id' => SubscriptionPlan::where('name', 'Professional')->firstOrFail()->id]));
         $this->asOwner()->post('/business', ['name' => 'Custom Wellness', 'industry' => 'My own category', 'description' => 'We offer wellbeing consultations.', 'timezone' => 'Asia/Kolkata'])->assertRedirect('/training');
         $new = Business::where('name', 'Custom Wellness')->firstOrFail();
         $this->assertDatabaseHas('subscriptions', ['business_id' => $new->id]);
@@ -133,7 +133,7 @@ class PlatformTest extends TestCase
     {
         $this->asOwner()->get('/admin')->assertForbidden();
         $this->owner->forceFill(['is_super_admin' => true])->save();
-        foreach (['/admin', '/admin/users', '/admin/plans', '/admin/settings', '/admin/subscriptions'] as $path) {
+        foreach (['/admin', '/admin/users', '/admin/plans', '/admin/settings', '/admin/subscriptions', '/admin/revenue', '/admin/coupons'] as $path) {
             $this->get($path)->assertOk();
         }
     }
@@ -410,9 +410,9 @@ class PlatformTest extends TestCase
         $gateway->shouldReceive('createOrder')->once()->with(99900, 'INR', \Mockery::type('string'))->andReturn(['id' => 'order_test', 'amount' => 99900, 'currency' => 'INR']);
         $gateway->shouldReceive('verify')->once()->andReturn(['status' => 'captured', 'order_id' => 'order_test', 'amount' => 99900, 'currency' => 'INR', 'fee' => 200]);
         $this->app->instance(PaymentGatewayInterface::class, $gateway);
-        $this->asOwner()->postJson('/subscription/order',['plan_id' => $plan->id, 'interval' => 'monthly'])->assertOk();
-        $this->tenant(fn () => $this->assertSame('Free',Subscription::firstOrFail()->plan->name));
-        $this->postJson('/subscription/verify',['razorpay_order_id' => 'order_test', 'razorpay_payment_id' => 'pay_test', 'razorpay_signature' => str_repeat('x',64)])->assertOk();
-        $this->tenant(fn () => $this->assertSame('Starter',Subscription::firstOrFail()->plan->name));
+        $this->asOwner()->postJson('/subscription/order', ['plan_id' => $plan->id, 'interval' => 'monthly'])->assertOk();
+        $this->tenant(fn () => $this->assertSame('Free', Subscription::firstOrFail()->plan->name));
+        $this->postJson('/subscription/verify', ['razorpay_order_id' => 'order_test', 'razorpay_payment_id' => 'pay_test', 'razorpay_signature' => str_repeat('x', 64)])->assertOk();
+        $this->tenant(fn () => $this->assertSame('Starter', Subscription::firstOrFail()->plan->name));
     }
 }

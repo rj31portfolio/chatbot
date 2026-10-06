@@ -55,6 +55,6 @@ class BusinessController extends Controller
 
     private function data(Request $r): array
     {
-        return $r->validate(['name' => 'required|string|max:255', 'industry' => 'nullable|string|max:255', 'description' => 'required|string|max:10000', 'website_url' => 'nullable|url:http,https|max:2048', 'email' => 'nullable|email|max:255', 'phone' => 'nullable|string|max:40', 'whatsapp' => 'nullable|string|max:40', 'address' => 'nullable|string|max:255', 'city' => 'nullable|string|max:255', 'state' => 'nullable|string|max:255', 'country' => 'nullable|string|max:255', 'timezone' => 'required|timezone', 'profile' => 'nullable|array:hours,customers,usp,languages', 'profile.*' => 'nullable|string|max:2000']);
+        return $r->validate(['name' => 'required|string|max:255', 'industry' => 'nullable|string|max:255', 'description' => 'required|string|max:10000', 'website_url' => 'nullable|url:http,https|max:2048', 'email' => 'nullable|email|max:255', 'phone' => 'nullable|string|max:40', 'whatsapp' => 'nullable|string|max:40', 'address' => 'nullable|string|max:255', 'city' => 'nullable|string|max:255', 'state' => 'nullable|string|max:255', 'country' => 'nullable|string|max:255', 'timezone' => 'required|timezone:all_with_bc', 'profile' => 'nullable|array:hours,customers,usp,languages', 'profile.*' => 'nullable|string|max:2000']);
     }
 }

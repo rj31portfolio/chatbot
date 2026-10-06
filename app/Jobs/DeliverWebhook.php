@@ -6,17 +6,23 @@ use App\Models\Business;
 use App\Models\WebhookLog;
 use App\Services\SafeHttpService;
 use App\Support\TenantContext;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
-class DeliverWebhook implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeUnique
+class DeliverWebhook implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public int $tries = 5;
+
     public int $uniqueFor = 86400;
-    public function uniqueId(): string { return $this->businessId.':'.$this->logId; }
+
+    public function uniqueId(): string
+    {
+        return $this->businessId.':'.$this->logId;
+    }
 
     public function backoff(): array
     {

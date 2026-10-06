@@ -126,6 +126,6 @@ class AIService
     {
         $text = $session->messages()->where('sender_type', 'visitor')->pluck('message')->implode(' ');
 
-        return ['intent' => $this->analyzeIntent($text), 'sentiment' => preg_match('/angry|terrible|complaint/i',$text) ? 'negative' : 'neutral'];
+        return ['intent' => $this->analyzeIntent($text), 'sentiment' => preg_match('/angry|terrible|complaint/i', $text) ? 'negative' : 'neutral'];
     }
 }

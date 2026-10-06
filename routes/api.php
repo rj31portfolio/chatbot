@@ -1,20 +1,20 @@
 <?php
 
-use App\Http\Controllers\Api\WidgetController;
 use App\Http\Controllers\Api\BusinessApiController;
+use App\Http\Controllers\Api\WidgetController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('business')->middleware(['auth:sanctum','api-tenant','throttle:60,1'])->group(function() {
-    Route::get('/leads',[BusinessApiController::class,'leads']);
-    Route::get('/leads/{id}',[BusinessApiController::class,'lead']);
-    Route::put('/leads/{id}',[BusinessApiController::class,'updateLead']);
-    Route::get('/knowledge',[BusinessApiController::class,'knowledge']);
-    Route::post('/knowledge',[BusinessApiController::class,'saveKnowledge']);
-    Route::put('/knowledge/{id}',[BusinessApiController::class,'saveKnowledge']);
-    Route::delete('/knowledge/{id}',[BusinessApiController::class,'deleteKnowledge']);
-    Route::get('/conversations',[BusinessApiController::class,'conversations']);
-    Route::get('/conversations/{id}',[BusinessApiController::class,'conversation']);
-    Route::get('/analytics',[BusinessApiController::class,'analytics']);
+Route::prefix('business')->middleware(['auth:sanctum', 'api-tenant', 'throttle:60,1'])->group(function () {
+    Route::get('/leads', [BusinessApiController::class, 'leads']);
+    Route::get('/leads/{id}', [BusinessApiController::class, 'lead']);
+    Route::put('/leads/{id}', [BusinessApiController::class, 'updateLead']);
+    Route::get('/knowledge', [BusinessApiController::class, 'knowledge']);
+    Route::post('/knowledge', [BusinessApiController::class, 'saveKnowledge']);
+    Route::put('/knowledge/{id}', [BusinessApiController::class, 'saveKnowledge']);
+    Route::delete('/knowledge/{id}', [BusinessApiController::class, 'deleteKnowledge']);
+    Route::get('/conversations', [BusinessApiController::class, 'conversations']);
+    Route::get('/conversations/{id}', [BusinessApiController::class, 'conversation']);
+    Route::get('/analytics', [BusinessApiController::class, 'analytics']);
 });
 
 Route::prefix('widget')->middleware(['throttle:widget', 'widget'])->group(function () {

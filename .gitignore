@@ -28,3 +28,4 @@ Thumbs.db
 /.tools
 /database/*.sqlite*
 /storage/app/demo-credentials.txt
+/storage/app/admin-credentials.txt
