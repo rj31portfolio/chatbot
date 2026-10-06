@@ -26,14 +26,24 @@ class SubscriptionController extends Controller
     public function order(Request $r)
     {
         ResourceRegistry::authorize($r, 'settings');
-        $r->validate(['plan_id' => 'required|integer', 'interval' => 'required|in:monthly,yearly']);
+        $r->validate(['plan_id' => 'required|integer', 'interval' => 'required|in:monthly,yearly','coupon'=>'nullable|string|max:40']);
         $plan = SubscriptionPlan::whereKey($r->input('plan_id'))->where('active', true)->firstOrFail();
         $amount = $r->input('interval') === 'yearly' ? $plan->yearly_price : $plan->monthly_price;
         if ($amount <= 0) {
             throw ValidationException::withMessages(['plan' => 'Choose a paid plan to use online checkout.']);
         }
-        $order = app(PaymentGatewayInterface::class)->createOrder((int) round($amount * 100), $plan->currency, 'upgrade_'.Str::random(16));
-        Payment::create(['gateway' => 'razorpay', 'reference' => $order['id'], 'amount' => $amount, 'currency' => $plan->currency, 'status' => 'pending', 'metadata' => ['plan_id' => $plan->id, 'interval' => $r->input('interval')]]);
+        $order=DB::transaction(function() use($r,$plan,$amount) {
+            $coupon=null; $minor=(int)round($amount*100);
+            if($r->filled('coupon')) {
+                $coupon=\App\Models\Coupon::where('code',strtoupper($r->input('coupon')))->lockForUpdate()->first();
+                if(!$coupon||$coupon->expires_at?->isPast()||$coupon->redemptions>=$coupon->max_redemptions) throw ValidationException::withMessages(['coupon'=>'This coupon is invalid, expired, or fully used.']);
+                $minor=(int)round($minor*(100-$coupon->percent)/100);
+                $coupon->increment('redemptions');
+            }
+            $order=app(PaymentGatewayInterface::class)->createOrder($minor,$plan->currency,'upgrade_'.Str::random(16));
+            Payment::create(['gateway'=>'razorpay','reference'=>$order['id'],'amount'=>$minor/100,'currency'=>$plan->currency,'status'=>'pending','metadata'=>['plan_id'=>$plan->id,'interval'=>$r->input('interval'),'coupon_id'=>$coupon?->id,'coupon_code'=>$coupon?->code]]);
+            return $order;
+        });
 
         return response()->json(['success' => true, 'message' => 'Order created', 'data' => ['order' => $order, 'key' => config('services.razorpay.key')]]);
     }

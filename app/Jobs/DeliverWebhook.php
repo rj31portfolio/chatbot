@@ -10,11 +10,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
-class DeliverWebhook implements ShouldQueue
+class DeliverWebhook implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeUnique
 {
     use Queueable;
 
     public int $tries = 5;
+    public int $uniqueFor = 86400;
+    public function uniqueId(): string { return $this->businessId.':'.$this->logId; }
 
     public function backoff(): array
     {

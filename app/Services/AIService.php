@@ -61,7 +61,7 @@ class AIService
         }
         $r = $this->request($context['messages'], 'chat');
         if ($cacheable) {
-            Cache::put($key, ['text' => $r->text, 'citations' => $context['citations'], 'tokens' => 0, 'model' => $r->model], now()->addMinutes(10));
+            Cache::put($key, ['text' => $r->text, 'citations' => $context['citations'], 'tokens' => 0, 'model' => $r->model], now()->addSeconds(config('ai.response_cache_seconds')));
         }
 
         return ['text' => $r->text, 'citations' => $context['citations'], 'tokens' => $r->inputTokens + $r->outputTokens, 'model' => $r->model];

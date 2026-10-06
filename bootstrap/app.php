@@ -23,8 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['api-tenant'=>\App\Http\Middleware\ApiTenant::class]);
-        $middleware->alias(['active-account' => ActiveAccount::class, 'tenant' => TenantMiddleware::class, 'permission' => BusinessPermission::class, 'superadmin' => SuperAdmin::class, 'widget' => WidgetAuthentication::class]);
+        $middleware->alias(['api-tenant'=>\App\Http\Middleware\ApiTenant::class,'active-account' => ActiveAccount::class, 'tenant' => TenantMiddleware::class, 'permission' => BusinessPermission::class, 'superadmin' => SuperAdmin::class, 'widget' => WidgetAuthentication::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

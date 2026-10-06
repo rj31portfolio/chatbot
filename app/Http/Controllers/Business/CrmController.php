@@ -131,6 +131,13 @@ class CrmController extends Controller
 
     public function export(Request $r, string $type)
     {
+        if($r->query('format')==='pdf') {
+            ResourceRegistry::authorize($r,$type==='leads'?'leads':($type==='conversations'?'conversations':'reports'));
+            abort_unless(in_array($type,['leads','conversations','analytics'],true),404);
+            $columns=$type==='leads'?['name','email','phone','requirement','score','status']:($type==='conversations'?['public_id','status','conversation_summary']:['date','chats','leads']);
+            $rows=$type==='leads'?$this->query($r)->limit(500)->get():($type==='conversations'?ChatSession::latest()->limit(500)->get():collect(app(AnalyticsService::class)->daily()));
+            return \Barryvdh\DomPDF\Facade\Pdf::loadView('business.export-pdf',compact('type','columns','rows'))->setOptions(['isRemoteEnabled'=>false,'isPhpEnabled'=>false])->setPaper('a4','landscape')->download($type.'-'.now()->format('Y-m-d').'.pdf');
+        }
         ResourceRegistry::authorize($r, $type === 'leads' ? 'leads' : ($type === 'conversations' ? 'conversations' : 'reports'));
         abort_unless(in_array($type, ['leads', 'conversations', 'analytics'], true), 404);
         $columns = $type === 'leads' ? ['public_id', 'name', 'email', 'phone', 'requirement', 'score', 'temperature', 'status', 'created_at'] : ($type === 'conversations' ? ['public_id', 'status', 'page_url', 'conversation_summary', 'created_at'] : ['date', 'chats', 'leads']);

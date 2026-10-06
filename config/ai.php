@@ -17,4 +17,5 @@ return [
     'max_context_chars' => 14000,
     'max_output_tokens' => 700,
     'history_messages' => 12,
+    'response_cache_seconds'=>(int)env('AI_RESPONSE_CACHE_SECONDS',600),
 ];

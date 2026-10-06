@@ -1,0 +1,5 @@
+@extends('layouts.app')
+@section('title','Business branding')
+@section('content')
+<div class="page-heading"><div><span class="eyebrow">A WORKSPACE WITH YOUR NAME ON IT</span><h1>Make it your brand.</h1><p>Customize this business workspace and widget branding.</p></div></div><form method="post" action="/branding" class="panel settings-layout">@csrf @method('PUT')<div class="form-section form-grid"><label>Brand name<input name="brand" value="{{ $branding['brand']??'' }}" required maxlength="100"></label><label>Primary color<input type="color" name="primary_color" value="{{ $branding['primary_color']??'#f97316' }}"></label><label>Logo URL<input type="url" name="logo_url" value="{{ $branding['logo_url']??'' }}" placeholder="https://…"></label><label>Support email<input type="email" name="support_email" value="{{ $branding['support_email']??'' }}"></label></div><div class="panel-body"><button class="button primary">Save branding</button></div></form><p class="field-help">Requires a plan with white-label access. Custom domain hosting is configured separately at deployment.</p>
+@endsection

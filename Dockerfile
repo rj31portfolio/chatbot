@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libonig-dev lib
     && docker-php-ext-install pdo_mysql mbstring dom xml zip bcmath curl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/www
+COPY deploy/php.ini /usr/local/etc/php/conf.d/saas.ini
 COPY --chown=www-data:www-data . .
 COPY --from=vendor --chown=www-data:www-data /build/vendor vendor
 COPY --from=frontend --chown=www-data:www-data /build/public/build public/build

@@ -121,6 +121,7 @@ class PlatformTest extends TestCase
 
     public function test_business_creation_connects_subscription_settings_and_widget(): void
     {
+        $this->tenant(fn()=>Subscription::firstOrFail()->update(['subscription_plan_id'=>SubscriptionPlan::where('name','Professional')->firstOrFail()->id]));
         $this->asOwner()->post('/business', ['name' => 'Custom Wellness', 'industry' => 'My own category', 'description' => 'We offer wellbeing consultations.', 'timezone' => 'Asia/Kolkata'])->assertRedirect('/training');
         $new = Business::where('name', 'Custom Wellness')->firstOrFail();
         $this->assertDatabaseHas('subscriptions', ['business_id' => $new->id]);

@@ -34,6 +34,9 @@ Route::middleware(['auth', 'active-account'])->group(function () {
     Route::post('/business', [BusinessController::class, 'store']);
     Route::post('/business/switch', [BusinessController::class, 'switch']);
     Route::middleware('tenant')->group(function () {
+        Route::get('/agency',[\App\Http\Controllers\Business\AgencyController::class,'index']);
+        Route::get('/branding',[\App\Http\Controllers\Business\BrandingController::class,'index']);
+        Route::put('/branding',[\App\Http\Controllers\Business\BrandingController::class,'save']);
         Route::get('/api-keys',[\App\Http\Controllers\Business\ApiKeyController::class,'index']);
         Route::post('/api-keys',[\App\Http\Controllers\Business\ApiKeyController::class,'store']);
         Route::delete('/api-keys/{id}',[\App\Http\Controllers\Business\ApiKeyController::class,'destroy']);
@@ -80,6 +83,10 @@ Route::middleware(['auth', 'active-account'])->group(function () {
         Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel']);
     });
     Route::prefix('admin')->middleware('superadmin')->group(function () {
+        Route::get('/coupons',[\App\Http\Controllers\Admin\CouponController::class,'index']);
+        Route::post('/coupons',[\App\Http\Controllers\Admin\CouponController::class,'save']);
+        Route::put('/coupons/{id}',[\App\Http\Controllers\Admin\CouponController::class,'save']);
+        Route::delete('/coupons/{id}',[\App\Http\Controllers\Admin\CouponController::class,'delete']);
         Route::get('/revenue', [RevenueController::class, 'index']);
         Route::get('/', [AdminController::class, 'index']);
         Route::get('/plans', [AdminController::class, 'plans']);
