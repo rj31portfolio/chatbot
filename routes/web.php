@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function() {
     Route::post('/business',[BusinessController::class,'store']);
     Route::post('/business/switch',[BusinessController::class,'switch']);
     Route::middleware('tenant')->group(function() {
+        Route::get('/notifications',[\App\Http\Controllers\Business\NotificationController::class,'index']);
+        Route::post('/notifications/{id}/read',[\App\Http\Controllers\Business\NotificationController::class,'read']);
         Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard');
         Route::get('/training',[DashboardController::class,'training']); Route::get('/analytics',[DashboardController::class,'analytics']);
         Route::get('/settings',[BusinessController::class,'edit']); Route::put('/settings',[BusinessController::class,'update']);
@@ -41,6 +43,7 @@ Route::middleware('auth')->group(function() {
         Route::get('/subscription',[SubscriptionController::class,'index']); Route::post('/subscription/order',[SubscriptionController::class,'order']); Route::post('/subscription/verify',[SubscriptionController::class,'verify']); Route::post('/subscription/cancel',[SubscriptionController::class,'cancel']);
     });
     Route::prefix('admin')->middleware('superadmin')->group(function() {
+        Route::get('/revenue',[\App\Http\Controllers\Admin\RevenueController::class,'index']);
         Route::get('/',[AdminController::class,'index']); Route::get('/plans',[AdminController::class,'plans']); Route::post('/plans',[AdminController::class,'savePlan']); Route::put('/plans/{id}',[AdminController::class,'savePlan']);
         Route::put('/businesses/{id}/status',[AdminController::class,'businessStatus']); Route::get('/users',[AdminController::class,'users']); Route::put('/users/{id}',[AdminController::class,'userStatus']);
         Route::get('/settings',[AdminController::class,'settings']); Route::put('/settings',[AdminController::class,'saveSettings']);

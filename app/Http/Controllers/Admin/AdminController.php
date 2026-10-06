@@ -26,7 +26,7 @@ class AdminController extends Controller
     public function settings() { return view('admin.settings',['settings'=>PlatformSetting::get()->keyBy('key')]); }
     public function saveSettings(Request $r)
     {
-        $data=$r->validate(['brand'=>'required|string|max:100','primary_color'=>'required|regex:/^#[0-9a-fA-F]{6}$/','support_email'=>'nullable|email|max:255','deepseek_key'=>'nullable|string|max:255','deepseek_model'=>'required|string|max:100','input_cost'=>'required|numeric|min:0|max:1000','output_cost'=>'required|numeric|min:0|max:1000']);
+        $data=$r->validate(['usd_to_inr'=>'nullable|numeric|min:0|max:10000','logo_url'=>'nullable|url:https|max:2048','favicon_url'=>'nullable|url:https|max:2048','secondary_color'=>'required|regex:/^#[0-9a-fA-F]{6}$/','company_name'=>'nullable|string|max:255','website_url'=>'nullable|url:https|max:2048','brand'=>'required|string|max:100','primary_color'=>'required|regex:/^#[0-9a-fA-F]{6}$/','support_email'=>'nullable|email|max:255','deepseek_key'=>'nullable|string|max:255','deepseek_model'=>'required|string|max:100','input_cost'=>'required|numeric|min:0|max:1000','output_cost'=>'required|numeric|min:0|max:1000']);
         foreach($data as $key=>$value) {
             if($key==='deepseek_key') {if(!$value) continue; $value=Crypt::encryptString($value);}
             PlatformSetting::updateOrCreate(['key'=>$key],['value'=>['value'=>$value]]);

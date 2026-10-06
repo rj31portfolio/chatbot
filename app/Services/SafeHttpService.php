@@ -19,7 +19,7 @@ class SafeHttpService
         }
         if(!$ips) $this->reject();
         foreach($ips as $ip) {
-            if(!filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)||str_starts_with(strtolower($ip),'::ffff:')) $this->reject();
+            if(!filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_GLOBAL_RANGE)||str_starts_with(strtolower($ip),'::ffff:')) $this->reject();
         }
         return [$host,$parts['port']??($parts['scheme']==='https'?443:80),$ips[0]];
     }

@@ -60,7 +60,7 @@
     event.preventDefault(); if (busy) return;
     const input = root.querySelector('.composer input'); const text = input.value.trim(); if (!text) return;
     busy = true; input.value = ''; root.querySelector('.send').disabled = true;
-    const pending = message(text, 'visitor'); const typing = message('Thinking…', 'typing');
+    const pending = message(text, 'visitor'); const typing = message('Thinking\u2026', 'typing');
     try {
       await ensureSession(); await request('message', { message: text });
       pending.remove(); typing.remove(); busy = false; await refresh();
@@ -69,7 +69,7 @@
   }
   function leadForm() {
     const pane = root.querySelector('.form-pane'); pane.replaceChildren(); pane.hidden = false;
-    const form = element('form', 'lead-form'); form.append(element('h3', '', 'Let’s keep in touch'));
+    const form = element('form', 'lead-form'); form.append(element('h3', '', 'Let\u2019s keep in touch'));
     const fields = [...config.fields]; if (!fields.includes('email') && !fields.includes('phone')) fields.push('email');
     for (const field of fields) {
       const label = element('label', '', field.replaceAll('_', ' ')); const input = element(field === 'requirement' ? 'textarea' : 'input'); input.name = field;
@@ -99,10 +99,10 @@
     root.append(style);
     const wrapper = element('div', config.position === 'left' ? 'left' : 'right'); wrapper.style.setProperty('--color', /^#[0-9a-f]{6}$/i.test(config.color) ? config.color : '#f97316'); wrapper.style.setProperty('--radius', `${Math.min(32, Math.max(0, Number(config.settings.radius ?? 16)))}px`);
     const window = element('section', 'window'); window.hidden = true; window.setAttribute('aria-label', config.title);
-    const header = element('header', 'header'); const title = element('div'); title.append(element('div', 'title', config.title), element('div', 'sub', 'AI assistant · Here to help'));
-    const close = element('button', 'close', '×'); close.type = 'button'; close.setAttribute('aria-label', 'Close chat'); close.onclick = () => toggle(false); header.append(title, close);
+    const header = element('header', 'header'); const title = element('div'); title.append(element('div', 'title', config.title), element('div', 'sub', 'AI assistant \u00b7 Here to help'));
+    const close = element('button', 'close', '\u00d7'); close.type = 'button'; close.setAttribute('aria-label', 'Close chat'); close.onclick = () => toggle(false); header.append(title, close);
     const messages = element('div', 'messages'); messages.setAttribute('role', 'log'); messages.setAttribute('aria-live', 'polite');
-    const composer = element('form', 'composer'); const input = element('input'); input.placeholder = config.settings.placeholder || 'Type your message…'; input.maxLength = 3000; input.required = true; input.setAttribute('aria-label', 'Message'); const sendButton = element('button', 'send', '↑'); sendButton.setAttribute('aria-label', 'Send message'); composer.append(input, sendButton); composer.onsubmit = send;
+    const composer = element('form', 'composer'); const input = element('input'); input.placeholder = config.settings.placeholder || 'Type your message\u2026'; input.maxLength = 3000; input.required = true; input.setAttribute('aria-label', 'Message'); const sendButton = element('button', 'send', '\u2191'); sendButton.setAttribute('aria-label', 'Send message'); composer.append(input, sendButton); composer.onsubmit = send;
     const actions = element('div', 'actions');
     if (config.capture) { const contact = element('button', '', 'Share contact details'); contact.onclick = leadForm; actions.append(contact); }
     if (config.appointments) { const book = element('button', '', 'Request appointment'); book.onclick = appointmentForm; actions.append(book); }

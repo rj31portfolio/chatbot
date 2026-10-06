@@ -20,7 +20,8 @@ class WidgetService
             $tracking=AiSetting::firstOrFail()->features['tracking']??false;
             $visitor=Visitor::firstOrCreate(['public_id'=>$data['visitor_id']??(string)Str::uuid()],['landing_page'=>$tracking?($data['page_url']??null):null,'referrer'=>$tracking?($data['referrer']??null):null,'metadata'=>$tracking?($data['utm']??[]):[]]);
             $token=Str::random(64);
-            $session=ChatSession::create(['public_id'=>(string)Str::uuid(),'chat_widget_id'=>$widget->id,'visitor_id'=>$visitor->id,'token_hash'=>hash('sha256',$token),'origin'=>$origin,'page_url'=>$data['page_url']??null,'last_activity'=>now(),'expires_at'=>now()->addHours(24),'metadata'=>['utm'=>$tracking?($data['utm']??[]):[]]]);
+            $returning=ChatSession::where('visitor_id',$visitor->id)->exists();
+            $session=ChatSession::create(['public_id'=>(string)Str::uuid(),'chat_widget_id'=>$widget->id,'visitor_id'=>$visitor->id,'token_hash'=>hash('sha256',$token),'origin'=>$origin,'page_url'=>$data['page_url']??null,'last_activity'=>now(),'expires_at'=>now()->addHours(24),'metadata'=>['utm'=>$tracking?($data['utm']??[]):[],'signals'=>['returning'=>$returning]]]);
             if($tracking) VisitorEvent::create(['visitor_id'=>$visitor->id,'event'=>'chat.started','metadata'=>['page_url'=>$data['page_url']??null]]);
             $widget->update(['installed_at'=>now()]);
             return ['session_id'=>$session->public_id,'token'=>$token,'visitor_id'=>$visitor->public_id];

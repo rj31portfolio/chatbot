@@ -2,6 +2,7 @@
 return [
     'provider' => env('AI_PROVIDER', 'deepseek'),
     'fallback' => env('AI_FALLBACK_PROVIDER'),
+    'provider_classes'=>['deepseek'=>\App\AI\Providers\DeepSeekProvider::class],
     'providers' => ['deepseek' => [
         'api_key' => env('DEEPSEEK_API_KEY'),
         'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),

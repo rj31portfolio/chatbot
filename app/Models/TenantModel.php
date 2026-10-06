@@ -17,6 +17,9 @@ abstract class TenantModel extends Model
         static::updating(function (Model $model) {
             if ((int) $model->business_id !== app(TenantContext::class)->id()) { throw new \LogicException('Cross-tenant update denied.'); }
         });
+        static::deleting(function (Model $model) {
+            if ((int) $model->business_id !== app(TenantContext::class)->id()) { throw new \LogicException('Cross-tenant deletion denied.'); }
+        });
     }
     public function business() { return $this->belongsTo(Business::class); }
 }

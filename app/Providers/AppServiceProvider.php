@@ -12,7 +12,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(\App\Support\TenantContext::class);
-        $this->app->bind(\App\AI\AIProviderInterface::class,\App\AI\Providers\DeepSeekProvider::class);
+        $this->app->bind(\App\AI\AIProviderInterface::class,\App\AI\AIProviderManager::class);
         $this->app->bind(\App\Billing\PaymentGatewayInterface::class,\App\Billing\RazorpayGateway::class);
     }
 
@@ -25,9 +25,15 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\RateLimiter::for('widget',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(90)->by($r->ip().'|'.$r->header('X-Widget-Id')));
         \Illuminate\Support\Facades\RateLimiter::for('widget-session',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($r->ip()));
         \Illuminate\Support\Facades\RateLimiter::for('widget-message',fn($r)=>\Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($r->ip().'|'.$r->input('session_id')));
-        \Illuminate\Support\Facades\View::composer('*',function($view){
+        \Illuminate\Support\Facades\View::composer(['layouts.app','auth.form','landing','legal','demo'],function($view){
             $platform=\App\Models\PlatformSetting::pluck('value','key');
             $view->with('brand',$platform['brand']['value']??config('saas.brand'));
+            $view->with('logoUrl',$platform['logo_url']['value']??null);
+            $view->with('faviconUrl',$platform['favicon_url']['value']??null);
+            $view->with('secondaryColor',$platform['secondary_color']['value']??config('saas.secondary_color'));
+            $view->with('companyName',$platform['company_name']['value']??config('saas.brand'));
+            $view->with('companyUrl',$platform['website_url']['value']??null);
+            $view->with('supportEmail',$platform['support_email']['value']??null);
             $view->with('primaryColor',$platform['primary_color']['value']??config('saas.primary_color'));
             if(auth()->check()) $view->with('availableBusinesses',auth()->user()->businesses()->get());
         });

@@ -40,6 +40,8 @@ class WidgetController extends Controller
         $data=$r->validate(['service'=>'required|string|max:255','starts_at'=>'required|date|after:now','timezone'=>'required|timezone:all_with_bc','notes'=>'nullable|string|max:2000']);
         $session=$this->session($r); abort_unless($session->lead_id,422,'Share contact details before requesting an appointment.');
         $appointment=Appointment::create(array_merge($data,['lead_id'=>$session->lead_id]));
+        $metadata=$session->metadata??[]; $metadata['signals']['appointment']=true; $session->update(['metadata'=>$metadata]);
+        app(LeadService::class)->capture($session,[]);
         app(EventService::class)->emit('appointment.created',$session->lead,['starts_at'=>$appointment->starts_at->toIso8601String()]);
         return $this->ok(['status'=>'requested'],'Appointment requested. The team will confirm availability.');
     }

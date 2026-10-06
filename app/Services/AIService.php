@@ -33,7 +33,11 @@ class AIService
         if(!$context['citations'] && !preg_match('/^(hi|hello|hey|thanks|thank you)[!.\s]*$/i',trim($message))) {
             return ['text'=>"I don't have enough information to answer that accurately. I can connect you with the team.",'citations'=>[],'tokens'=>0,'model'=>null];
         }
+        $cacheable=!$session->messages()->exists()&&preg_match('/working hours|opening hours|business hours|location|address/i',$message);
+        $key='ai-answer:'.app(\App\Support\TenantContext::class)->id().':'.hash('sha256',json_encode($context['messages']));
+        if($cacheable&&($cached=\Illuminate\Support\Facades\Cache::get($key))) return array_merge($cached,['tokens'=>0]);
         $r=$this->request($context['messages'],'chat');
+        if($cacheable) \Illuminate\Support\Facades\Cache::put($key,['text'=>$r->text,'citations'=>$context['citations'],'tokens'=>0,'model'=>$r->model],now()->addMinutes(10));
         return ['text'=>$r->text,'citations'=>$context['citations'],'tokens'=>$r->inputTokens+$r->outputTokens,'model'=>$r->model];
     }
     public function analyzeIntent(string $message): string

@@ -170,7 +170,7 @@ class PlatformTest extends TestCase
     }
     public function test_private_network_crawling_is_rejected(): void
     {
-        foreach(['http://127.0.0.1','http://10.0.0.1','http://169.254.169.254/latest/meta-data','http://[::1]','ftp://example.com','http://example.com:8080','https://user:password@example.com'] as $url) {
+        foreach(['http://127.0.0.1','http://10.0.0.1','http://100.100.100.200/latest/meta-data','http://169.254.169.254/latest/meta-data','http://[::1]','ftp://example.com','http://example.com:8080','https://user:password@example.com'] as $url) {
             try{app(SafeHttpService::class)->resolve($url);$this->fail('Unsafe URL accepted: '.$url);}catch(\Illuminate\Validation\ValidationException){$this->assertTrue(true);}
         }
     }
