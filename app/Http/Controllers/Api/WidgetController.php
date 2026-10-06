@@ -37,7 +37,7 @@ class WidgetController extends Controller
     public function appointment(Request $r)
     {
         abort_unless(AiSetting::firstOrFail()->features['appointments']??false,403);
-        $data=$r->validate(['service'=>'required|string|max:255','starts_at'=>'required|date|after:now','timezone'=>'required|timezone','notes'=>'nullable|string|max:2000']);
+        $data=$r->validate(['service'=>'required|string|max:255','starts_at'=>'required|date|after:now','timezone'=>'required|timezone:all_with_bc','notes'=>'nullable|string|max:2000']);
         $session=$this->session($r); abort_unless($session->lead_id,422,'Share contact details before requesting an appointment.');
         $appointment=Appointment::create(array_merge($data,['lead_id'=>$session->lead_id]));
         app(EventService::class)->emit('appointment.created',$session->lead,['starts_at'=>$appointment->starts_at->toIso8601String()]);

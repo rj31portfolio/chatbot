@@ -1,0 +1,43 @@
+import {chromium} from '@playwright/test';
+import {spawn,execFileSync} from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import assert from 'node:assert/strict';
+
+const workspace=process.cwd();
+const php=process.env.PHP_BINARY||path.join(workspace,'.tools/php/php.exe');
+const artifactDir=path.join(workspace,'.tools/browser');fs.mkdirSync(artifactDir,{recursive:true});
+const database=path.join(artifactDir,`test-${Date.now()}.sqlite`);fs.writeFileSync(database,'');
+const env={...process.env,APP_ENV:'local',APP_URL:'http://localhost:8001',DB_CONNECTION:'sqlite',DB_DATABASE:database,DEEPSEEK_API_KEY:'',QUEUE_CONNECTION:'database',APP_DEBUG:'false'};
+execFileSync(php,['artisan','migrate','--seed','--force'],{cwd:workspace,env,stdio:'pipe'});
+const server=spawn(php,['-S','127.0.0.1:8001','-t',path.join(workspace,'public'),path.join(workspace,'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')],{cwd:path.join(workspace,'public'),env,stdio:'ignore',windowsHide:true});
+let browser,fixtureServer;
+const errors=[];
+try{
+  for(let i=0;i<50;i++){try{const r=await fetch('http://localhost:8001/up');if(r.ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
+  browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+  const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(e.message));
+  page.on('response',async r=>{if(r.status()>=400)console.log('HTTP ERROR',r.status(),r.url(),(await r.text()).slice(0,600));});
+  await page.goto('http://localhost:8001/register');
+  await page.locator('[name=name]').fill('Browser Owner');await page.locator('[name=email]').fill('browser@example.test');await page.locator('[name=password]').fill('BrowserStrong1234');await page.locator('[name=password_confirmation]').fill('BrowserStrong1234');await page.locator('[name=terms]').check();await page.getByRole('button',{name:'Create account',exact:true}).click();
+  await page.waitForURL('**/business/create');await page.locator('[name=name]').fill('Browser Test Studio');await page.locator('[name=industry]').fill('Custom creative consulting');await page.locator('[name=description]').fill('We offer website development and creative consulting.');await page.locator('[name=email]').fill('studio@example.test');await page.locator('[name="profile[hours]"]').fill('Monday to Friday, 9 AM to 6 PM');await page.getByRole('button',{name:'Create business & train AI'}).click();await page.waitForURL('**/training');
+  await page.goto('http://localhost:8001/manage/services');await page.locator('[name=title]').fill('Website development');await page.locator('[name=content]').fill('Responsive business website development with lead forms.');await page.locator('[name=pricing]').fill('INR 25,000');await page.getByRole('button',{name:'Add record'}).click();await page.getByText('Saved successfully.').waitFor();
+  await page.goto('http://localhost:8001/manage/faqs');await page.locator('[name=title]').fill('What are the studio working hours?');await page.locator('[name=content]').fill('We are open Monday to Friday, 9 AM to 6 PM.');await page.getByRole('button',{name:'Add record'}).click();await page.getByText('Saved successfully.').waitFor();
+  await page.goto('http://localhost:8001/widget');await page.locator('[name=domains]').fill('localhost');await page.getByRole('button',{name:'Save widget'}).click();await page.getByText('Widget design and approved domains saved.').waitFor();
+  await page.goto('http://localhost:8001/installation');const snippet=await page.locator('.code-block').first().textContent();assert.match(snippet,/data-widget-id="[a-f0-9-]+"/);
+  fixtureServer=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html'});res.end(`<!doctype html><html><head><title>Customer website</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><h1>Customer test website</h1><style>button{color:red!important;font-size:50px!important}</style>${snippet}</body></html>`);}).listen(8002,'127.0.0.1');
+  const visitor=await browser.newPage({viewport:{width:390,height:844}});visitor.on('pageerror',e=>errors.push(e.message));visitor.on('response',async r=>{if(r.status()>=400)console.log('WIDGET HTTP ERROR',r.status(),r.url(),(await r.text()).slice(0,600));});await visitor.goto('http://localhost:8002');
+  await visitor.getByRole('button',{name:'Open chat',exact:true}).click();await visitor.getByRole('textbox',{name:'Message',exact:true}).fill('Do you sell quantum helicopters?');await visitor.getByRole('button',{name:'Send message',exact:true}).click();await visitor.getByText("I don't have enough information",{exact:false}).waitFor();
+  await visitor.getByRole('button',{name:'Share contact details'}).click();await visitor.locator('[name=name]').fill('Alex Browser');await visitor.locator('[name=phone]').fill('+91 9876543210');await visitor.locator('[name=email]').fill('alex@example.test');await visitor.locator('[name=requirement]').fill('A business website');await visitor.locator('[name=consent]').check();await visitor.getByRole('button',{name:'Send my details'}).click();await visitor.getByText('Your details have been shared',{exact:false}).waitFor();
+  await visitor.screenshot({path:path.join(artifactDir,'widget-mobile.png')});
+  const position=await visitor.getByRole('button',{name:'Open chat',exact:true}).evaluate(e=>({width:e.getBoundingClientRect().width,color:getComputedStyle(e).color,font:getComputedStyle(e).fontSize}));assert.notEqual(position.font,'50px');assert.equal(position.color,'rgb(255, 255, 255)');
+  await page.goto('http://localhost:8001/leads');await page.getByText('Alex Browser',{exact:true}).click();await page.waitForURL('**/leads/*');await page.locator('[name=status]').selectOption('qualified');await page.getByRole('button',{name:'Save lead'}).click();await page.getByText('Lead updated.').waitFor();await page.locator('[name=content]').fill('Follow up about the website project.');await page.getByRole('button',{name:'Save note'}).click();await page.getByText('Note added.').waitFor();
+  await page.goto('http://localhost:8001/conversations');await page.getByText('Alex Browser',{exact:true}).click();await page.locator('[name=message]').fill('Hi Alex, the owner is here to help.');await page.getByRole('button',{name:'Reply',exact:true}).click();await visitor.getByText('Hi Alex, the owner is here to help.').waitFor({timeout:20000});
+  await visitor.getByRole('button',{name:'Request appointment'}).click();await visitor.locator('[name=service]').fill('Website consultation');await visitor.locator('[name=starts_at]').fill('2027-01-15T10:30');await visitor.getByRole('button',{name:'Request appointment',exact:true}).last().click();await visitor.getByText('Appointment requested. The team will confirm the time.').waitFor();
+  await page.goto('http://localhost:8001/appointments');await page.locator('[name=status]').selectOption('confirmed');await page.getByRole('button',{name:'Save',exact:true}).click();await page.getByText('Appointment updated.').waitFor();
+  await page.goto('http://localhost:8001/dashboard');await page.screenshot({path:path.join(artifactDir,'dashboard-desktop.png'),fullPage:true});assert.equal(await page.locator('h1').textContent(),'Good to see you, Browser ✦');
+  for(const route of ['training','manage/knowledge','manage/website','manage/products','manage/policies','chatbot','tester','analytics','team','subscription','settings']){const response=await page.goto(`http://localhost:8001/${route}`);assert.equal(response.status(),200,route);}
+  await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:8001/dashboard');await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('.sidebar').getByRole('link',{name:'AI training',exact:true}).click();await page.waitForURL('**/training');const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);await page.screenshot({path:path.join(artifactDir,'training-mobile.png'),fullPage:true});
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['registration','business setup','service and FAQ training','widget configuration','installation snippet','customer website embedding','mobile shadow DOM isolation','conversation','lead capture','CRM status and notes','human handoff','appointment request and confirmation','dashboard','workspace routes','mobile navigation'],screenshots:artifactDir}));
+}finally{await browser?.close();fixtureServer?.close();server.kill();}

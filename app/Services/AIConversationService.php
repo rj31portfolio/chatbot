@@ -25,6 +25,8 @@ class AIConversationService
             if($intent==='human'&&($settings->features['handoff']??false)) {
                 $reply=['text'=>'I can connect you with the team. Please use the contact options below or share your contact details so the team can follow up.','citations'=>[],'tokens'=>0,'model'=>null];
                 app(EventService::class)->emit('human.requested',$session->lead,['session_id'=>$session->public_id]);
+            } elseif($intent==='pricing'&&!($settings->features['pricing']??true)) {
+                $reply=['text'=>'Please contact our team for current pricing.','citations'=>[],'tokens'=>0,'model'=>null];
             } else $reply=$ai->generateResponse($session,$message);
             ChatMessage::create(['session_id'=>$session->id,'sender_type'=>'visitor','message'=>$message,'intent'=>$intent]);
             ChatMessage::create(['session_id'=>$session->id,'sender_type'=>'ai','message'=>$reply['text'],'intent'=>$intent,'tokens_used'=>$reply['tokens'],'model'=>$reply['model'],'citations'=>$reply['citations'],'response_time'=>(int)((microtime(true)-$started)*1000)]);

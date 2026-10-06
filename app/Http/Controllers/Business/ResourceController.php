@@ -55,9 +55,9 @@ class ResourceController extends Controller
     {
         ResourceRegistry::authorize($r,'knowledge'); $r->validate(['document'=>'required|file|mimes:pdf,txt|max:10240']);
         $file=$r->file('document');
-        $content=$file->getClientOriginalExtension()==='pdf'?(new \Smalot\PdfParser\Parser)->parseFile($file->getRealPath())->getText():file_get_contents($file->getRealPath());
-        if(!trim($content)) return back()->withErrors(['document'=>'This document has no extractable text. Upload a text-based PDF or TXT file.']);
-        app(KnowledgeService::class)->save(['source_type'=>'document','title'=>mb_substr($file->getClientOriginalName(),0,255),'content'=>mb_substr($content,0,100000)]);
-        return back()->with('status','Document imported into AI knowledge.');
+        $doc=app(\App\Services\UsageService::class)->createWithinLimit('knowledge_documents',KnowledgeDocument::class,fn()=>KnowledgeDocument::create(['source_type'=>'document','title'=>mb_substr($file->getClientOriginalName(),0,255),'content'=>'','status'=>'processing']));
+        $path=$file->store('knowledge-uploads','local');
+        \App\Jobs\ProcessKnowledgeUpload::dispatch(app(TenantContext::class)->id(),$doc->id,$path,strtolower($file->getClientOriginalExtension()));
+        return back()->with('status','Document queued for processing. Run the queue worker to import its text.');
     }
 }
