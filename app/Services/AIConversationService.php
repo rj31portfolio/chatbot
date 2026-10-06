@@ -13,11 +13,14 @@ class AIConversationService
 {
     public function reply(ChatSession $session, string $message): array
     {
-        $lock = Cache::lock('chat:'.$session->public_id, 90);
+        $lock = Cache::lock('chat:'.$session->public_id, 300);
         if (! $lock->get()) {
             throw ValidationException::withMessages(['message' => 'Please wait for the previous reply.']);
         }
         try {
+            if ($session->messages()->where('sender_type', 'visitor')->count() >= 100) {
+                throw ValidationException::withMessages(['message' => 'This conversation has reached its message limit. End this chat and start a new conversation.']);
+            }
             $started = microtime(true);
             $ai = app(AIService::class);
             $settings = AiSetting::firstOrFail();

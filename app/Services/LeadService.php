@@ -28,6 +28,9 @@ class LeadService
             $lead->score = $result['score'];
             $lead->temperature = $result['temperature'];
             $lead->recommended_action = $result['score'] >= 80 ? 'Call within 10 minutes' : ($result['score'] >= 60 ? 'Schedule a consultation' : 'Ask about their requirements');
+            if (! $isNew && ! $lead->isDirty()) {
+                return $lead;
+            }
             $lead->save();
             $session->update(['lead_id' => $lead->id]);
             LeadScore::create(['lead_id' => $lead->id, 'score' => $lead->score, 'breakdown' => $result['breakdown']]);

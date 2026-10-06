@@ -14,6 +14,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
 
@@ -99,8 +100,11 @@ class AdminController extends Controller
     {
         $data = $r->validate(['subscription_plan_id' => 'required|exists:subscription_plans,id', 'status' => 'required|in:trial,active,past_due,cancelled,expired', 'ends_at' => 'nullable|date']);
         $subscription = Subscription::withoutGlobalScopes()->findOrFail($id);
+        if ($data['status'] === 'trial') {
+            $data['trial_ends_at'] = ! empty($data['ends_at']) ? Carbon::parse($data['ends_at']) : now()->addDays(config('saas.trial_days'));
+        }
         app(TenantContext::class)->run($subscription->business, fn () => $subscription->update($data));
 
-        return back()->with('status','Subscription updated.');
+        return back()->with('status', 'Subscription updated.');
     }
 }

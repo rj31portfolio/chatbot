@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AiSetting;
 use App\Models\ChatWidget;
 use App\Models\ChatWidgetDomain;
+use App\Models\PlatformSetting;
 use App\Services\AIConversationService;
 use App\Services\SafeHttpService;
 use App\Services\UsageService;
@@ -115,7 +116,7 @@ class ChatbotController extends Controller
     {
         ResourceRegistry::authorize($r, 'chatbot');
 
-        return view('business.tester', ['widget' => ChatWidget::firstOrFail()]);
+        return view('business.tester', ['widget' => ChatWidget::firstOrFail(), 'configured' => filled(config('ai.providers.deepseek.api_key')) || PlatformSetting::where('key', 'deepseek_key')->exists()]);
     }
 
     public function testStart(Request $r)
@@ -131,6 +132,6 @@ class ChatbotController extends Controller
         $r->validate(['message' => 'required|string|max:3000', 'session_id' => 'required|uuid', 'token' => 'required|string']);
         $session = app(WidgetService::class)->authenticate($r->input('session_id'), $r->input('token'));
 
-        return response()->json(['success' => true, 'message' => 'Success', 'data' => app(AIConversationService::class)->reply($session,$r->input('message'))]);
+        return response()->json(['success' => true, 'message' => 'Success', 'data' => app(AIConversationService::class)->reply($session, $r->input('message'))]);
     }
 }

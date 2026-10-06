@@ -44,7 +44,7 @@ php artisan db:seed --class=LocalAdminSeeder
 
 `DemoSeeder` is blocked in production. `LocalAdminSeeder` runs only in the local environment. Normal `migrate --seed` creates configurable plans and never creates a default user or admin password.
 
-On this Windows workspace, replace `php` with `.\.tools\php\php.exe`. To restart the supplied MySQL runtime:
+On this Windows workspace, replace `php` with `.\.tools\php\php.exe`. Run the SQLite suite directly with `& .\.tools\php\php.exe vendor\bin\phpunit` so a subprocess cannot select the older system PHP runtime. To restart the supplied MySQL runtime:
 
 ```powershell
 & '.\.tools\mysql\mysql-8.4.11-winx64\bin\mysqld.exe' --no-defaults --basedir=D:/Working/chatbot/.tools/mysql/mysql-8.4.11-winx64 --datadir=D:/Working/chatbot/.tools/mysql-test-data --port=3308 --bind-address=127.0.0.1 --mysqlx=OFF --console
