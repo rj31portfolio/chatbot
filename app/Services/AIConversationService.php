@@ -14,6 +14,11 @@ class AIConversationService
         try {
             $started=microtime(true); $ai=app(AIService::class); $settings=AiSetting::firstOrFail();
             $intent=$ai->analyzeIntent($message);
+            if($session->status==='transferred') {
+                ChatMessage::create(['session_id'=>$session->id,'sender_type'=>'visitor','message'=>$message,'intent'=>$intent]);
+                $session->update(['last_activity'=>now()]);
+                return ['message'=>'Your message has been sent to the team.','intent'=>$intent,'citations'=>[],'score'=>$session->lead?->score??0];
+            }
             $meta=$session->metadata??[];
             if(in_array($intent,['buying','appointment','pricing'],true)) $meta['signals'][$intent]=true;
             $session->update(['metadata'=>$meta,'last_activity'=>now()]);

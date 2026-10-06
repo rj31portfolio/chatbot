@@ -1,0 +1,5 @@
+@extends('layouts.app')
+@section('title','Subscriptions')
+@section('content')
+<div class="page-heading"><div><h1>Plans for every business.</h1><p>Manage tenant subscriptions and access periods.</p></div></div><section class="panel">@foreach($subscriptions as $s)<form method="post" action="/admin/subscriptions/{{ $s->id }}" class="record form-grid">@csrf @method('PUT')<h2 class="wide">{{ $s->business->name }}</h2><label>Plan<select name="subscription_plan_id">@foreach($plans as $p)<option value="{{ $p->id }}" @selected($p->id===$s->subscription_plan_id)>{{ $p->name }}</option>@endforeach</select></label><label>Status<select name="status">@foreach(['trial','active','past_due','cancelled','expired'] as $status)<option @selected($status===$s->status)>{{ $status }}</option>@endforeach</select></label><label>Access ends<input type="date" name="ends_at" value="{{ $s->ends_at?->format('Y-m-d') }}"></label><div style="align-self:end"><button class="button secondary">Save subscription</button></div></form>@endforeach<div class="panel-body">{{ $subscriptions->links() }}</div></section>
+@endsection

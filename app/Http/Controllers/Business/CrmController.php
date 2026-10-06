@@ -49,6 +49,7 @@ class CrmController extends Controller
     {
         ResourceRegistry::authorize($r,'manage_leads'); $s=ChatSession::where('public_id',$id)->firstOrFail(); $data=$r->validate(['message'=>'required|string|max:3000']);
         ChatMessage::create(['session_id'=>$s->id,'sender_type'=>'human','message'=>$data['message']]);
+        $s->update(['status'=>'transferred','last_activity'=>now()]);
         return back()->with('status','Reply added to the conversation.');
     }
     public function deleteConversation(Request $r,string $id) { ResourceRegistry::authorize($r,'conversations'); ChatSession::where('public_id',$id)->firstOrFail()->delete(); return back()->with('status','Conversation and messages deleted.'); }

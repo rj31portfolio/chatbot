@@ -29,7 +29,7 @@ class WidgetService
     public function authenticate(string $publicId,string $token,?string $origin=null,?int $widgetId=null): ChatSession
     {
         $session=ChatSession::where('public_id',$publicId)->firstOrFail();
-        abort_unless(strlen($token)>=32&&hash_equals($session->token_hash,hash('sha256',$token))&&$session->expires_at->isFuture()&&$session->status==='active',401,'Your chat session expired. Please start a new conversation.');
+        abort_unless(strlen($token)>=32&&hash_equals($session->token_hash,hash('sha256',$token))&&$session->expires_at->isFuture()&&in_array($session->status,['active','transferred'],true),401,'Your chat session expired. Please start a new conversation.');
         if($origin!==null) abort_unless($session->origin===$origin,403);
         if($widgetId!==null) abort_unless($session->chat_widget_id===$widgetId,403);
         return $session;

@@ -20,6 +20,9 @@ class AIService
         $actual=$response->inputTokens+$response->outputTokens;
         if($actual<$reserved) $this->usage->refund('ai_tokens',$reserved-$actual);
         $c=config('ai.providers.deepseek');
+        $stored=\App\Models\PlatformSetting::pluck('value','key');
+        $c['input_cost_per_million']=(float)($stored['input_cost']['value']??$c['input_cost_per_million']);
+        $c['output_cost_per_million']=(float)($stored['output_cost']['value']??$c['output_cost_per_million']);
         AiUsageLog::create(['model'=>$response->model,'input_tokens'=>$response->inputTokens,'output_tokens'=>$response->outputTokens,'total_tokens'=>$actual,'estimated_cost'=>($response->inputTokens*$c['input_cost_per_million']+$response->outputTokens*$c['output_cost_per_million'])/1000000,'request_type'=>$type]);
         return $response;
     }

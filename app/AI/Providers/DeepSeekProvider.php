@@ -10,6 +10,9 @@ class DeepSeekProvider implements AIProviderInterface
     public function complete(array $messages,bool $json=false): AIResponse
     {
         $config=config('ai.providers.deepseek');
+        $stored=\App\Models\PlatformSetting::pluck('value','key');
+        if(!empty($stored['deepseek_key']['value'])) $config['api_key']=\Illuminate\Support\Facades\Crypt::decryptString($stored['deepseek_key']['value']);
+        if(!empty($stored['deepseek_model']['value'])) $config['model']=$stored['deepseek_model']['value'];
         if(empty($config['api_key'])) throw new RuntimeException('DeepSeek is not configured.');
         $payload=['model'=>$config['model'],'messages'=>$messages,'max_tokens'=>config('ai.max_output_tokens'),'temperature'=>0.3];
         if($json) $payload['response_format']=['type'=>'json_object'];
