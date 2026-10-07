@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        if ($trustedProxies = config('app.trusted_proxies')) {
+            $middleware->trustProxies(at: $trustedProxies);
+        }
         $middleware->append(SecurityHeaders::class);
         $middleware->alias(['api-tenant' => ApiTenant::class, 'active-account' => ActiveAccount::class, 'tenant' => TenantMiddleware::class, 'permission' => BusinessPermission::class, 'superadmin' => SuperAdmin::class, 'widget' => WidgetAuthentication::class]);
     })
