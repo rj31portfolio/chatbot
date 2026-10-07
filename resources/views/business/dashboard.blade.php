@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title','Overview')
 @section('content')
+@include('business.partials.subscription-status')
 <div class="page-heading"><div><span class="eyebrow">YOUR BUSINESS AT A GLANCE</span><h1>Good to see you, {{ explode(' ',auth()->user()->name)[0] }} <span class="wave">✦</span></h1><p>Here’s how your AI agent is working for your business.</p></div><a href="/tester" class="button primary"><x-icon name="chat"/>Test your AI</a></div>
 <div class="agent-banner"><div class="agent-banner-icon"><x-icon name="spark"/></div><div><span class="eyebrow">LESS BUSYWORK. MORE BUSINESS.</span><h2>Your next customer starts with a conversation.</h2><p>Give your AI the knowledge it needs to turn questions into opportunities.</p></div><a href="/training" class="button light">Train your agent <x-icon name="arrow"/></a><div class="banner-decoration">✦</div></div>
 <div class="section-caption"><span>Performance overview</span><span class="muted">All time · Live database</span></div>

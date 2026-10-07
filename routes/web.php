@@ -16,12 +16,13 @@ use App\Http\Controllers\Business\ResourceController;
 use App\Http\Controllers\Business\SubscriptionController;
 use App\Http\Controllers\Business\TeamController;
 use App\Models\ChatWidget;
+use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'landing')->name('home');
+Route::get('/', fn () => view('landing', ['plans' => SubscriptionPlan::where('active', true)->orderBy('monthly_price')->get()]))->name('home');
 Route::view('/privacy', 'legal', ['type' => 'privacy']);
 Route::view('/terms', 'legal', ['type' => 'terms']);
-Route::get('/demo', fn () => view('demo', ['widget' => ChatWidget::withoutGlobalScopes()->where('is_demo', true)->first()]));
+Route::get('/demo', fn () => view('demo', ['widget' => ChatWidget::withoutGlobalScopes()->where('is_demo', true)->first()]))->name('demo');
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => app(AuthController::class)->form('login'))->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
@@ -81,7 +82,9 @@ Route::middleware(['auth', 'active-account'])->group(function () {
         Route::get('/team', [TeamController::class, 'index']);
         Route::post('/team', [TeamController::class, 'add']);
         Route::delete('/team/{id}', [TeamController::class, 'remove']);
-        Route::get('/subscription', [SubscriptionController::class, 'index']);
+        Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription');
+        Route::put('/subscription/billing', [SubscriptionController::class, 'billing'])->name('subscription.billing');
+        Route::get('/subscription/invoices/{id}', [SubscriptionController::class, 'invoice'])->name('subscription.invoice');
         Route::post('/subscription/order', [SubscriptionController::class, 'order']);
         Route::post('/subscription/verify', [SubscriptionController::class, 'verify']);
         Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel']);

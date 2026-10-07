@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="290" viewBox="0 0 560 290" fill="none">
+  <title>Your business knowledge connects to an AI assistant and customer opportunities</title>
+  <circle cx="280" cy="145" r="118" stroke="#CFD7BD" stroke-dasharray="5 7"/>
+  <circle cx="280" cy="145" r="85" fill="#E3E9D5"/>
+  <path d="M143 74C190 74 183 119 230 119M142 216C192 216 181 171 230 171M330 145C386 145 374 91 422 91M330 145C386 145 374 214 422 214" stroke="#93A47C" stroke-width="2" stroke-dasharray="5 5"/>
+  <rect x="213" y="79" width="134" height="135" rx="29" fill="#788B5D"/>
+  <rect x="226" y="95" width="108" height="104" rx="23" fill="#FFFFFF" fill-opacity=".12"/>
+  <path d="M260 121H301C310 121 317 128 317 137V155C317 164 310 171 301 171H279L263 182V171H260C251 171 244 164 244 155V137C244 128 251 121 260 121Z" fill="#FDFBF4"/>
+  <circle cx="262" cy="147" r="4" fill="#788B5D"/><circle cx="281" cy="147" r="4" fill="#788B5D"/><circle cx="300" cy="147" r="4" fill="#788B5D"/>
+  <rect x="15" y="42" width="143" height="63" rx="12" fill="#FFFEF8" stroke="#DFE4D3"/>
+  <rect x="29" y="57" width="31" height="31" rx="8" fill="#F4E8D3"/>
+  <path d="M37 65H53V81H37V65ZM45 65V81" stroke="#B78653" stroke-width="1.5"/>
+  <text x="70" y="68" fill="#5E6A4B" font-family="sans-serif" font-size="11" font-weight="600">Your knowledge</text>
+  <text x="70" y="84" fill="#9AA28B" font-family="sans-serif" font-size="9">FAQs · Services · Prices</text>
+  <rect x="15" y="183" width="143" height="63" rx="12" fill="#FFFEF8" stroke="#DFE4D3"/>
+  <rect x="29" y="199" width="31" height="31" rx="8" fill="#EAF0DF"/>
+  <circle cx="45" cy="214" r="9" stroke="#859B65" stroke-width="1.5"/><path d="M36 214H54M45 205C50 211 50 217 45 223C40 217 40 211 45 205Z" stroke="#859B65"/>
+  <text x="70" y="209" fill="#5E6A4B" font-family="sans-serif" font-size="11" font-weight="600">Your website</text>
+  <text x="70" y="225" fill="#9AA28B" font-family="sans-serif" font-size="9">One simple installation</text>
+  <rect x="407" y="60" width="143" height="63" rx="12" fill="#FFFEF8" stroke="#DFE4D3"/>
+  <circle cx="437" cy="91" r="16" fill="#F4E8D3"/><circle cx="437" cy="87" r="5" fill="#C79965"/><path d="M428 101C428 92 446 92 446 101" fill="#C79965"/>
+  <text x="461" y="86" fill="#5E6A4B" font-family="sans-serif" font-size="11" font-weight="600">Better leads</text>
+  <text x="461" y="102" fill="#9AA28B" font-family="sans-serif" font-size="9">Ready for your team</text>
+  <rect x="407" y="182" width="143" height="63" rx="12" fill="#FFFEF8" stroke="#DFE4D3"/>
+  <rect x="422" y="199" width="31" height="31" rx="8" fill="#EAF0DF"/><path d="M430 214L435 219L445 208" stroke="#859B65" stroke-width="2" stroke-linecap="round"/>
+  <text x="461" y="209" fill="#5E6A4B" font-family="sans-serif" font-size="11" font-weight="600">Next steps</text>
+  <text x="461" y="225" fill="#9AA28B" font-family="sans-serif" font-size="9">Tasks · Alerts · Bookings</text>
+  <path d="M362 38L366 48L376 52L366 56L362 66L358 56L348 52L358 48L362 38Z" fill="#D6BA91"/>
+  <path d="M185 225L188 232L195 235L188 238L185 245L182 238L175 235L182 232L185 225Z" fill="#AFBF92"/>
+</svg>

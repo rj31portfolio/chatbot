@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatSession;
 use App\Models\KnowledgeDocument;
 use App\Models\Lead;
+use App\Models\Subscription;
 use App\Services\AnalyticsService;
 use App\Services\KnowledgeService;
 use App\Support\ResourceRegistry;
@@ -17,7 +18,7 @@ class DashboardController extends Controller
     {
         ResourceRegistry::authorize($r, 'reports');
 
-        return view('business.dashboard', ['metrics' => app(AnalyticsService::class)->metrics(), 'daily' => app(AnalyticsService::class)->daily(), 'leads' => Lead::orderByDesc('score')->latest()->take(5)->get(), 'readiness' => app(KnowledgeService::class)->readiness()]);
+        return view('business.dashboard', ['subscription' => Subscription::with('plan')->first(), 'metrics' => app(AnalyticsService::class)->metrics(), 'daily' => app(AnalyticsService::class)->daily(), 'leads' => Lead::orderByDesc('score')->latest()->take(5)->get(), 'readiness' => app(KnowledgeService::class)->readiness()]);
     }
 
     public function training(Request $r)

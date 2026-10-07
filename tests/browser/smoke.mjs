@@ -19,6 +19,14 @@ try{
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
   const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(e.message));
   page.on('response',async r=>{if(r.status()>=400)console.log('HTTP ERROR',r.status(),r.url(),(await r.text()).slice(0,600));});
+  await page.goto('http://localhost:8001/');
+  await page.locator('[data-price-interval=yearly]').click();assert.equal(await page.locator('[data-price-period]').first().textContent(),'/ year');
+  assert.equal(await page.locator('[data-monthly="999"]').textContent(),'9,990');
+  await page.locator('[data-price-interval=monthly]').click();assert.equal(await page.locator('[data-monthly="999"]').textContent(),'999');
+  await page.screenshot({path:path.join(artifactDir,'landing-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(artifactDir,'landing-mobile.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:path.join(artifactDir,'landing-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1100});
   await page.goto('http://localhost:8001/register');
   await page.locator('[name=name]').fill('Browser Owner');await page.locator('[name=email]').fill('browser@example.test');await page.locator('[name=password]').fill('BrowserStrong1234');await page.locator('[name=password_confirmation]').fill('BrowserStrong1234');await page.locator('[name=terms]').check();await page.getByRole('button',{name:'Create account',exact:true}).click();
   await page.waitForURL('**/business/create');await page.locator('[name=name]').fill('Browser Test Studio');await page.locator('[name=industry]').fill('Custom creative consulting');await page.locator('[name=description]').fill('We offer website development and creative consulting.');await page.locator('[name=email]').fill('studio@example.test');await page.locator('[name="profile[hours]"]').fill('Monday to Friday, 9 AM to 6 PM');await page.getByRole('button',{name:'Create business & train AI'}).click();await page.waitForURL('**/training');
@@ -38,6 +46,13 @@ try{
   await page.goto('http://localhost:8001/appointments');await page.locator('[name=status]').selectOption('confirmed');await page.getByRole('button',{name:'Save',exact:true}).click();await page.getByText('Appointment updated.').waitFor();
   await page.goto('http://localhost:8001/dashboard');await page.screenshot({path:path.join(artifactDir,'dashboard-desktop.png'),fullPage:true});assert.equal(await page.locator('h1').textContent(),'Good to see you, Browser ✦');
   for(const route of ['training','manage/knowledge','manage/website','manage/products','manage/policies','chatbot','tester','analytics','team','subscription','settings']){const response=await page.goto(`http://localhost:8001/${route}`);assert.equal(response.status(),200,route);}
-  await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:8001/dashboard');await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('.sidebar').getByRole('link',{name:'AI training',exact:true}).click();await page.waitForURL('**/training');const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);await page.screenshot({path:path.join(artifactDir,'training-mobile.png'),fullPage:true});
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['registration','business setup','service and FAQ training','widget configuration','installation snippet','customer website embedding','mobile shadow DOM isolation','conversation','lead capture','CRM status and notes','human handoff','appointment request and confirmation','dashboard','workspace routes','mobile navigation'],screenshots:artifactDir}));
+  await page.goto('http://localhost:8001/subscription');
+  for(const [name,value] of Object.entries({name:'Browser Billing Co',email:'billing@example.test',address:'12 Market Street',city:'Mumbai',state:'Maharashtra',postal_code:'400001',country:'India'})){await page.locator('.billing-details [name='+name+']').fill(value);}
+  await page.getByRole('button',{name:'Save billing details'}).click();await page.getByText('Billing details saved.',{exact:false}).waitFor();
+  await page.reload();assert.equal(await page.locator('.billing-details [name=name]').inputValue(),'Browser Billing Co');
+  await page.screenshot({path:path.join(artifactDir,'billing-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:path.join(artifactDir,'billing-mobile.png'),fullPage:true});
+  await page.goto('http://localhost:8001/dashboard');await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('.sidebar').getByRole('link',{name:'AI training',exact:true}).click();await page.waitForURL('**/training');const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);await page.screenshot({path:path.join(artifactDir,'training-mobile.png'),fullPage:true});
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['landing desktop and mobile','pricing interval toggle','billing details persistence','billing mobile','registration','business setup','service and FAQ training','widget configuration','installation snippet','customer website embedding','mobile shadow DOM isolation','conversation','lead capture','CRM status and notes','human handoff','appointment request and confirmation','dashboard','workspace routes','mobile navigation'],screenshots:artifactDir}));
 }finally{await browser?.close();fixtureServer?.close();server.kill();}

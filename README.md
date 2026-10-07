@@ -185,3 +185,4 @@ Further specification items include the complete step-by-step onboarding wizard,
 Provider adapters for OpenAI/Gemini/Anthropic, embedding search, calendar integrations, advanced WhatsApp, and custom white-label domain provisioning are future extensions. Register additional provider classes in `config/ai.php`. A fallback is invoked only when explicitly configured.
 
 Implementation references: [Laravel release requirements](https://laravel.com/docs/13.x/releases), [DeepSeek chat completions](https://api-docs.deepseek.com/api/create-chat-completion/), and [MySQL Windows archive installation](https://dev.mysql.com/doc/refman/8.4/en/windows-extract-archive.html).
+
