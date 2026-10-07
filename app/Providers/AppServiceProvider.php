@@ -12,6 +12,7 @@ use App\Models\PlatformSetting;
 use App\Models\Subscription;
 use App\Support\TenantContext;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +35,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($trustedProxies = config('app.trusted_proxies')) {
+            TrustProxies::at($trustedProxies);
+        }
+
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         RateLimiter::for('auth', fn ($r) => Limit::perMinute(5)->by($r->ip().'|'.strtolower($r->input('email', ''))));
         RateLimiter::for('widget', fn ($r) => Limit::perMinute(90)->by($r->ip().'|'.$r->header('X-Widget-Id')));
