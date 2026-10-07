@@ -47,11 +47,11 @@ class SubscriptionBillingTest extends TestCase
         return ['razorpay_order_id' => 'order_billing', 'razorpay_payment_id' => 'pay_billing', 'razorpay_signature' => hash_hmac('sha256', 'order_billing|pay_billing', 'test_secret')];
     }
 
-    private function createOrder(int $capturedAmount = 99900): int
+    private function createOrder(int $capturedAmount = 99900, string $interval = 'monthly'): int
     {
-        Http::fake(['api.razorpay.com/v1/orders' => Http::response(['id' => 'order_billing', 'amount' => 99900, 'currency' => 'INR']), 'api.razorpay.com/v1/payments/pay_billing' => Http::response(['id' => 'pay_billing', 'status' => 'captured', 'order_id' => 'order_billing', 'amount' => $capturedAmount, 'currency' => 'INR', 'fee' => 200])]);
+        Http::fake(['api.razorpay.com/v1/orders' => Http::response(['id' => 'order_billing', 'amount' => $interval === 'yearly' ? 999000 : 99900, 'currency' => 'INR']), 'api.razorpay.com/v1/payments/pay_billing' => Http::response(['id' => 'pay_billing', 'status' => 'captured', 'order_id' => 'order_billing', 'amount' => $capturedAmount, 'currency' => 'INR', 'fee' => 200])]);
         $plan = SubscriptionPlan::where('name', 'Starter')->firstOrFail();
-        $this->postJson('/subscription/order', ['plan_id' => $plan->id, 'interval' => 'monthly'])->assertOk()->assertJsonPath('data.prefill.email', $this->billingDetails()['email']);
+        $this->postJson('/subscription/order', ['plan_id' => $plan->id, 'interval' => $interval])->assertOk()->assertJsonPath('data.prefill.email', $this->billingDetails()['email']);
 
         return app(TenantContext::class)->run($this->business, fn () => Payment::firstOrFail()->id);
     }
@@ -127,6 +127,19 @@ class SubscriptionBillingTest extends TestCase
         $this->get('/subscription/invoices/'.$id)->assertNotFound();
         $this->assertDatabaseHas('payments', ['id' => $id, 'status' => 'pending']);
         $this->assertDatabaseHas('subscriptions', ['business_id' => $this->business->id, 'subscription_plan_id' => SubscriptionPlan::where('name', 'Free')->firstOrFail()->id]);
+    }
+
+    public function test_yearly_purchase_records_full_year_and_handles_leap_day(): void
+    {
+        $this->travelTo(now()->setDate(2028, 2, 29)->startOfDay());
+        $this->put('/subscription/billing', $this->billingDetails());
+        $id = $this->createOrder(999000, 'yearly');
+        $this->postJson('/subscription/verify', $this->paymentPayload())->assertOk();
+        app(TenantContext::class)->run($this->business, function () {
+            $this->assertSame('2029-02-28', Subscription::firstOrFail()->ends_at->format('Y-m-d'));
+            $this->assertSame('yearly', Payment::firstOrFail()->metadata['invoice']['interval']);
+        });
+        $this->get('/subscription/invoices/'.$id)->assertOk()->assertSee('9,990.00')->assertSee('Yearly prepaid access');
     }
 
     public function test_dashboard_displays_active_expired_cancelled_and_free_subscription_states(): void

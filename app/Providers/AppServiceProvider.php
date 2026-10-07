@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('widget', fn ($r) => Limit::perMinute(90)->by($r->ip().'|'.$r->header('X-Widget-Id')));
         RateLimiter::for('widget-session', fn ($r) => Limit::perMinute(5)->by($r->ip()));
         RateLimiter::for('widget-message', fn ($r) => Limit::perMinute(15)->by($r->ip().'|'.$r->input('session_id')));
-        View::composer(['layouts.app', 'auth.form', 'landing', 'legal', 'demo'], function ($view) {
+        View::composer(['layouts.app', 'auth.form', 'landing', 'legal', 'demo', 'widget-installation'], function ($view) {
             $platform = PlatformSetting::pluck('value', 'key');
             $view->with('brand', $platform['brand']['value'] ?? config('saas.brand'));
             $view->with('logoUrl', $platform['logo_url']['value'] ?? null);

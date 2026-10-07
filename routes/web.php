@@ -20,6 +20,7 @@ use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('landing', ['plans' => SubscriptionPlan::where('active', true)->orderBy('monthly_price')->get()]))->name('home');
+Route::view('/widget-installation', 'widget-installation')->name('widget.installation-guide');
 Route::view('/privacy', 'legal', ['type' => 'privacy']);
 Route::view('/terms', 'legal', ['type' => 'terms']);
 Route::get('/demo', fn () => view('demo', ['widget' => ChatWidget::withoutGlobalScopes()->where('is_demo', true)->first()]))->name('demo');
