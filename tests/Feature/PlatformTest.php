@@ -102,7 +102,7 @@ class PlatformTest extends TestCase
 
     public function test_public_pages_and_all_owner_screens_render(): void
     {
-        foreach (['/', '/login', '/register', '/privacy', '/terms', '/demo'] as $path) {
+        foreach (['/', '/login', '/register', '/privacy', '/terms', '/demo', '/widget-installation'] as $path) {
             $this->get($path)->assertOk();
         }
         $this->asOwner();

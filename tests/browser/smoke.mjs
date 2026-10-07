@@ -20,12 +20,24 @@ try{
   const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(e.message));
   page.on('response',async r=>{if(r.status()>=400)console.log('HTTP ERROR',r.status(),r.url(),(await r.text()).slice(0,600));});
   await page.goto('http://localhost:8001/');
+  assert.ok(await page.locator('.growth-hero-copy>p').evaluate(e=>parseFloat(getComputedStyle(e).fontSize))>=16);
+  await page.waitForFunction(()=>document.querySelector('[data-demo-status]').textContent.startsWith('2 / 5'));
+  await page.getByRole('button',{name:'Pause demo',exact:true}).click();const pausedStatus=await page.locator('[data-demo-status]').textContent();
+  await page.waitForTimeout(2700);assert.equal(await page.locator('[data-demo-status]').textContent(),pausedStatus);
+  await page.getByRole('button',{name:'Replay',exact:false}).click();assert.match(await page.locator('[data-demo-status]').textContent(),/^1 \/ 5/);await page.waitForFunction(()=>document.querySelector('[data-demo-status]').textContent.startsWith('5 / 5'));
+  await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+  const calm=await browser.newPage({reducedMotion:'reduce'});await calm.goto('http://localhost:8001/');assert.equal(await calm.locator('[data-demo-step]:visible').count(),5);await calm.getByRole('button',{name:'Play demo',exact:true}).waitFor();await calm.close();
   await page.locator('[data-price-interval=yearly]').click();assert.equal(await page.locator('[data-price-period]').first().textContent(),'/ year');
   assert.equal(await page.locator('[data-monthly="999"]').textContent(),'9,990');
   await page.locator('[data-price-interval=monthly]').click();assert.equal(await page.locator('[data-monthly="999"]').textContent(),'999');
-  await page.screenshot({path:path.join(artifactDir,'landing-desktop.png'),fullPage:true});
+  await page.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await page.screenshot({path:path.join(artifactDir,'landing-desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(artifactDir,'landing-mobile.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.screenshot({path:path.join(artifactDir,'landing-mobile.png'),fullPage:true});
+  await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.locator('#marketing-navigation').getByRole('link',{name:'Install widget',exact:true}).click();await page.waitForURL('**/widget-installation');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.getByRole('heading',{name:'Where do I paste the code?',exact:true}).waitFor();
+  await page.locator('.platform-guide-grid summary').filter({hasText:'Shopify'}).click();await page.getByText('layout/theme.liquid',{exact:true}).waitFor();
+  await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(artifactDir,'installation-guide-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1100});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(artifactDir,'installation-guide-desktop.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1100});
   await page.goto('http://localhost:8001/register');
   await page.locator('[name=name]').fill('Browser Owner');await page.locator('[name=email]').fill('browser@example.test');await page.locator('[name=password]').fill('BrowserStrong1234');await page.locator('[name=password_confirmation]').fill('BrowserStrong1234');await page.locator('[name=terms]').check();await page.getByRole('button',{name:'Create account',exact:true}).click();
@@ -54,5 +66,5 @@ try{
   await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(artifactDir,'billing-mobile.png'),fullPage:true});
   await page.goto('http://localhost:8001/dashboard');await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('.sidebar').getByRole('link',{name:'AI training',exact:true}).click();await page.waitForURL('**/training');const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);await page.screenshot({path:path.join(artifactDir,'training-mobile.png'),fullPage:true});
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['landing desktop and mobile','pricing interval toggle','billing details persistence','billing mobile','registration','business setup','service and FAQ training','widget configuration','installation snippet','customer website embedding','mobile shadow DOM isolation','conversation','lead capture','CRM status and notes','human handoff','appointment request and confirmation','dashboard','workspace routes','mobile navigation'],screenshots:artifactDir}));
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['readable text','automatic demo pause and replay','reduced motion','mobile marketing menu','public widget installation guide','landing desktop and mobile','pricing interval toggle','billing details persistence','billing mobile','registration','business setup','service and FAQ training','widget configuration','installation snippet','customer website embedding','mobile shadow DOM isolation','conversation','lead capture','CRM status and notes','human handoff','appointment request and confirmation','dashboard','workspace routes','mobile navigation'],screenshots:artifactDir}));
 }finally{await browser?.close();fixtureServer?.close();server.kill();}

@@ -49,3 +49,38 @@ document.querySelectorAll('[data-price-interval]').forEach(button=>button.addEve
     document.querySelectorAll('[data-monthly][data-yearly]').forEach(price=>price.textContent=price.dataset[button.dataset.priceInterval]);
     document.querySelectorAll('[data-price-period]').forEach(label=>label.textContent=button.dataset.priceInterval==='yearly'?'/ year':'/ month');
 }));
+
+const marketingMenu=document.querySelector('[data-marketing-menu]');
+if(marketingMenu){
+    const navigation=document.getElementById(marketingMenu.getAttribute('aria-controls'));
+    const closeMenu=()=>{navigation.classList.remove('is-open');marketingMenu.setAttribute('aria-expanded','false');marketingMenu.setAttribute('aria-label','Open menu');};
+    marketingMenu.addEventListener('click',()=>{const open=marketingMenu.getAttribute('aria-expanded')!=='true';navigation.classList.toggle('is-open',open);marketingMenu.setAttribute('aria-expanded',String(open));marketingMenu.setAttribute('aria-label',open?'Close menu':'Open menu');});
+    navigation.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&marketingMenu.getAttribute('aria-expanded')==='true'){closeMenu();marketingMenu.focus();}});
+    document.addEventListener('click',event=>{if(!event.target.closest('.marketing-header'))closeMenu();});
+}
+
+document.querySelectorAll('[data-auto-demo]').forEach(demo=>{
+    const steps=[...demo.querySelectorAll('[data-demo-step]')];
+    const status=demo.querySelector('[data-demo-status]');
+    const controls=demo.querySelector('.demo-controls');
+    const toggle=demo.querySelector('[data-demo-toggle]');
+    const replay=demo.querySelector('[data-demo-replay]');
+    const motionPreference=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const labels=['1 / 5 · A visitor asks about your services','2 / 5 · Your AI answers from business knowledge','3 / 5 · The visitor shares their contact details','4 / 5 · The enquiry is shared with your team','5 / 5 · A lead and follow-up task are ready'];
+    let step=0,timer,paused=motionPreference.matches,visible=false;
+    controls.hidden=false;
+    const render=()=>{steps.forEach((message,index)=>message.hidden=index>step);status.textContent=labels[step];demo.classList.toggle('demo-is-running',!paused&&!motionPreference.matches);toggle.textContent=paused?'Play demo':'Pause demo';toggle.setAttribute('aria-pressed',String(paused));};
+    const stop=()=>{clearTimeout(timer);timer=undefined;};
+    const schedule=()=>{
+        stop();
+        if(paused||!visible||document.hidden)return;
+        timer=setTimeout(()=>{step=(step+1)%steps.length;render();schedule();},step===steps.length-1?5000:2400);
+    };
+    if(motionPreference.matches){step=steps.length-1;render();}else{render();}
+    toggle.addEventListener('click',()=>{paused=!paused;render();schedule();});
+    replay.addEventListener('click',()=>{step=0;paused=false;render();schedule();});
+    const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.1});observer.observe(demo);
+    document.addEventListener('visibilitychange',schedule);
+    motionPreference.addEventListener('change',()=>{paused=motionPreference.matches;if(paused)step=steps.length-1;render();schedule();});
+});
