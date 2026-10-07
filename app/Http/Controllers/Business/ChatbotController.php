@@ -13,6 +13,11 @@ use App\Services\UsageService;
 use App\Services\WidgetService;
 use App\Support\ResourceRegistry;
 use App\Support\TenantContext;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -95,7 +100,7 @@ class ChatbotController extends Controller
         return view('business.installation', ['widgets' => ChatWidget::with('domains')->get()]);
     }
 
-    public function check(Request $r, string $publicId)
+    public function check(Request $r, string $publicId): RedirectResponse
     {
         ResourceRegistry::authorize($r, 'chatbot');
         $widget = ChatWidget::where('public_id', $publicId)->firstOrFail();
@@ -103,7 +108,37 @@ class ChatbotController extends Controller
         if (! $url) {
             return back()->withErrors(['website' => 'Add your website URL in business settings first.']);
         }
-        $response = app(SafeHttpService::class)->fetch($url);
+        try {
+            $visited = [];
+            for ($redirects = 0; $redirects <= 5; $redirects++) {
+                if (isset($visited[$url])) {
+                    return back()->withErrors(['installation' => 'Your website redirects in a loop. Check the website URL in business settings.']);
+                }
+                $visited[$url] = true;
+                $response = app(SafeHttpService::class)->fetch($url);
+                if (! in_array($response->status(), [301, 302, 303, 307, 308], true)) {
+                    break;
+                }
+                $location = $response->header('Location');
+                if (! $location || $redirects === 5) {
+                    return back()->withErrors(['installation' => 'Your website has an invalid redirect or too many redirects. Update the website URL to the final published address.']);
+                }
+                $url = (string) UriResolver::resolve(new Uri($url), new Uri($location));
+            }
+        } catch (ConnectionException $exception) {
+            $message = str_contains(strtolower($exception->getMessage()), 'certificate')
+                ? 'The server could not verify your website HTTPS certificate. Please contact platform support to check the certificate configuration.'
+                : 'Could not connect to your website. Check that it is online and the URL in business settings is correct, then try again.';
+
+            return back()->withErrors(['installation' => $message]);
+        } catch (ValidationException $exception) {
+            return back()->withErrors(['installation' => 'The website or its redirect must use a public HTTP/HTTPS address on port 80 or 443. Check the URL in business settings.']);
+        } catch (GuzzleException|\RuntimeException|\InvalidArgumentException $exception) {
+            return back()->withErrors(['installation' => 'The website response could not be checked. Try again, or open your published website and send a test message to verify the widget.']);
+        }
+        if (! $response->successful()) {
+            return back()->withErrors(['installation' => 'Your website returned HTTP '.$response->status().'. Check that the page is public and does not block the installation checker.']);
+        }
         $found = $response->successful() && str_contains($response->body(), 'widget.js') && str_contains($response->body(), $publicId);
         if ($found) {
             $widget->update(['installed_at' => now()]);

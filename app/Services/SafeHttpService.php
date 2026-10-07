@@ -41,7 +41,7 @@ class SafeHttpService
     public function fetch(string $url, string $method = 'GET', ?array $payload = null, array $headers = []): Response
     {
         [$host,$port,$ip] = $this->resolve($url);
-        $request = Http::withHeaders(array_merge(['User-Agent' => 'AILeadAgentBot/1.0', 'Accept' => 'text/html,text/plain,application/json'], $headers))->timeout(15)->connectTimeout(5)->withOptions(['allow_redirects' => false, 'curl' => [CURLOPT_RESOLVE => ["{$host}:{$port}:{$ip}"]], 'on_headers' => function ($response) {
+        $request = Http::withHeaders(array_merge(['User-Agent' => 'AILeadAgentBot/1.0', 'Accept' => 'text/html,text/plain,application/json'], $headers))->timeout(15)->connectTimeout(5)->withOptions(['verify' => config('services.http.ca_bundle') ?: true, 'allow_redirects' => false, 'curl' => [CURLOPT_RESOLVE => ["{$host}:{$port}:{$ip}"]], 'on_headers' => function ($response) {
             if ((int) $response->getHeaderLine('Content-Length') > 2 * 1024 * 1024) {
                 throw new \RuntimeException('Response too large.');
             }

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'http' => ['ca_bundle' => env('HTTP_CA_BUNDLE')],
     'razorpay' => ['key' => env('RAZORPAY_KEY_ID'), 'secret' => env('RAZORPAY_KEY_SECRET')],
 
     /*
