@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'trusted_proxies' => env('TRUSTED_PROXIES', env('RENDER') === 'true' ? '*' : null),
+    'trusted_proxies' => env('TRUSTED_PROXIES', env('RENDER') === true ? '*' : null),
 
     /*
     |--------------------------------------------------------------------------

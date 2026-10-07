@@ -13,7 +13,7 @@ RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --igno
 
 FROM php:8.4-fpm-bookworm AS app
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libonig-dev libxml2-dev libzip-dev libcurl4-openssl-dev libpq-dev libsqlite3-dev unzip \
-    && docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite mbstring dom xml zip bcmath curl \
+    && docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite mbstring dom xml zip bcmath curl pcntl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/www
 COPY deploy/php.ini /usr/local/etc/php/conf.d/saas.ini
